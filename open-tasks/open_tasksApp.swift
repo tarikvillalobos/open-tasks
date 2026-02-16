@@ -13,7 +13,7 @@ struct open_tasksApp: App {
         WindowGroup {
             ContentView()
         }
-        .windowStyle(.hiddenTitleBar)
+        .windowStyle(.plain)
         .windowResizability(.contentSize)
     }
 }
