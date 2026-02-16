@@ -17,6 +17,10 @@ private struct TodoItem: Identifiable {
 
 struct ContentView: View {
     private let panelWidth: CGFloat = 410
+    private let panelHorizontalInset: CGFloat = 2
+    private let panelVerticalInset: CGFloat = 6
+    private let windowEdgePaddingX: CGFloat = 10
+    private let windowEdgePaddingY: CGFloat = 12
     private let maxVisibleTasks = 6
     private let taskRowHeight: CGFloat = 44
     private let taskRowSpacing: CGFloat = 10
@@ -86,8 +90,10 @@ struct ContentView: View {
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .stroke(.white.opacity(0.20), lineWidth: 1)
+                        .strokeBorder(.white.opacity(0.20), lineWidth: 1)
                 )
+                .padding(.horizontal, panelHorizontalInset)
+                .padding(.vertical, panelVerticalInset)
 
             VStack(spacing: 14) {
                 header
@@ -102,10 +108,19 @@ struct ContentView: View {
             .padding(.horizontal, 18)
             .padding(.top, 20)
             .padding(.bottom, 14)
+            .padding(.horizontal, panelHorizontalInset)
+            .padding(.vertical, panelVerticalInset)
         }
         .frame(width: panelWidth, height: panelHeight)
+        .padding(.horizontal, windowEdgePaddingX)
+        .padding(.vertical, windowEdgePaddingY)
         .background(
-            WindowConfigurator(targetSize: CGSize(width: panelWidth, height: panelHeight)) { window in
+            WindowConfigurator(
+                targetSize: CGSize(
+                    width: panelWidth + (windowEdgePaddingX * 2),
+                    height: panelHeight + (windowEdgePaddingY * 2)
+                )
+            ) { window in
                 if hostWindow !== window {
                     hostWindow = window
                 }
