@@ -18,11 +18,26 @@ struct ContentView: View {
                 .fill(.regularMaterial)
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .fill(Color.black.opacity(0.16))
+                        .fill(Color(red: 0.12, green: 0.13, blue: 0.15).opacity(0.46))
                 )
+                .overlay(alignment: .topLeading) {
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.45, green: 0.39, blue: 0.36).opacity(0.20),
+                            Color(red: 0.35, green: 0.30, blue: 0.36).opacity(0.10),
+                            .clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+                }
                 .overlay(alignment: .bottomLeading) {
                     LinearGradient(
-                        colors: [Color.white.opacity(0.08), .clear],
+                        colors: [
+                            Color(red: 0.12, green: 0.36, blue: 0.52).opacity(0.28),
+                            .clear
+                        ],
                         startPoint: .bottomLeading,
                         endPoint: .topTrailing
                     )
@@ -30,7 +45,7 @@ struct ContentView: View {
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .stroke(.white.opacity(0.18), lineWidth: 1)
+                        .stroke(.white.opacity(0.20), lineWidth: 1)
                 )
 
             VStack(spacing: 18) {
