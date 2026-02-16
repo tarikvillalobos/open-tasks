@@ -63,8 +63,8 @@ struct ContentView: View {
     private var header: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("GlassDo")
-                    .font(.system(size: 46, weight: .bold, design: .rounded))
+                Text("OpenTasks")
+                    .font(.system(size: 38, weight: .bold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.93))
 
                 Text("IOS 26 CONCEPT")
