@@ -258,7 +258,7 @@ struct ContentView: View {
     private func taskRow(for index: Int) -> some View {
         HStack(spacing: 10) {
             Button {
-                tasks[index].completed.toggle()
+                toggleTask(at: index)
             } label: {
                 Image(systemName: tasks[index].completed ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 15, weight: .medium))
@@ -307,6 +307,19 @@ struct ContentView: View {
         guard !trimmed.isEmpty else { return }
         tasks.insert(TodoItem(title: trimmed), at: 0)
         newTask = ""
+    }
+
+    private func toggleTask(at index: Int) {
+        guard tasks.indices.contains(index) else { return }
+
+        if tasks[index].completed {
+            tasks[index].completed = false
+            return
+        }
+
+        var task = tasks.remove(at: index)
+        task.completed = true
+        tasks.append(task)
     }
 
     private func closeTodoWindow() {
