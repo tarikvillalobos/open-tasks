@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import ObjectiveC.runtime
 import SwiftUI
 
 struct ContentView: View {
@@ -271,6 +272,9 @@ private struct WindowConfigurator: NSViewRepresentable {
 
     private func configure(_ window: NSWindow) {
         guard window.identifier?.rawValue != "glassdo.window" else { return }
+        if !(window is KeyableBorderlessWindow) {
+            _ = object_setClass(window, KeyableBorderlessWindow.self)
+        }
         window.identifier = NSUserInterfaceItemIdentifier("glassdo.window")
         window.styleMask = [.borderless, .fullSizeContentView]
         window.isMovableByWindowBackground = true
@@ -284,5 +288,11 @@ private struct WindowConfigurator: NSViewRepresentable {
         window.standardWindowButton(.zoomButton)?.isHidden = true
         window.minSize = NSSize(width: 390, height: 320)
         window.setContentSize(NSSize(width: 410, height: 360))
+        window.makeKeyAndOrderFront(nil)
     }
+}
+
+private final class KeyableBorderlessWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
 }
