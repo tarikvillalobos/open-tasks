@@ -116,7 +116,7 @@ struct ContentView: View {
         HStack(spacing: 8) {
             TextField("Nova tarefa simples...", text: $newTask)
                 .textFieldStyle(.plain)
-                .font(.system(size: 23, weight: .semibold, design: .rounded))
+                .font(.system(size: 21, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white.opacity(0.36))
                 .padding(.leading, 16)
 
