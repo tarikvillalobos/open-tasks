@@ -9,9 +9,26 @@ import AppKit
 import ObjectiveC.runtime
 import SwiftUI
 
+private struct TodoItem: Identifiable {
+    let id = UUID()
+    var title: String
+    var completed = false
+}
+
 struct ContentView: View {
     @State private var newTask = ""
+    @State private var tasks: [TodoItem] = []
     @State private var hostWindow: NSWindow?
+
+    private var pendingCount: Int {
+        tasks.filter { !$0.completed }.count
+    }
+
+    private var completionPercent: Int {
+        guard !tasks.isEmpty else { return 0 }
+        let done = tasks.filter { $0.completed }.count
+        return Int((Double(done) / Double(tasks.count)) * 100)
+    }
 
     var body: some View {
         ZStack {
@@ -56,9 +73,7 @@ struct ContentView: View {
 
                 Spacer(minLength: 0)
 
-                Text("Vazio como o espaco...")
-                    .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.42))
+                tasksSection
                     .padding(.bottom, 8)
 
                 Spacer(minLength: 0)
@@ -125,8 +140,9 @@ struct ContentView: View {
             .font(.system(size: 21, weight: .medium, design: .rounded))
             .foregroundStyle(.white.opacity(0.92))
             .padding(.leading, 16)
+            .onSubmit(addTask)
 
-            Button(action: {}) {
+            Button(action: addTask) {
                 Image(systemName: "plus")
                     .font(.system(size: 22, weight: .regular))
                     .foregroundStyle(.white.opacity(0.9))
@@ -177,6 +193,57 @@ struct ContentView: View {
         }
     }
 
+    private var tasksSection: some View {
+        Group {
+            if tasks.isEmpty {
+                Text("Vazio como o espaco...")
+                    .font(.system(size: 19, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.42))
+            } else {
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 10) {
+                        ForEach(tasks.indices, id: \.self) { index in
+                            taskRow(for: index)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+                .frame(maxWidth: .infinity, maxHeight: 132)
+            }
+        }
+    }
+
+    private func taskRow(for index: Int) -> some View {
+        HStack(spacing: 10) {
+            Button {
+                tasks[index].completed.toggle()
+            } label: {
+                Image(systemName: tasks[index].completed ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(tasks[index].completed ? .green : .white.opacity(0.50))
+            }
+            .buttonStyle(.plain)
+
+            Text(tasks[index].title)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundStyle(tasks[index].completed ? .white.opacity(0.50) : .white.opacity(0.88))
+                .strikethrough(tasks[index].completed, color: .white.opacity(0.5))
+                .lineLimit(2)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.black.opacity(0.22))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(.white.opacity(0.10), lineWidth: 1)
+                )
+        )
+    }
+
     private var footer: some View {
         VStack(spacing: 12) {
             Rectangle()
@@ -184,13 +251,20 @@ struct ContentView: View {
                 .frame(height: 1)
 
             HStack {
-                Text("0 pendentes")
+                Text("\(pendingCount) pendentes")
                 Spacer()
-                Text("0% concluido")
+                Text("\(completionPercent)% concluido")
             }
             .font(.system(size: 11, weight: .semibold, design: .rounded))
             .foregroundStyle(.white.opacity(0.58))
         }
+    }
+
+    private func addTask() {
+        let trimmed = newTask.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        tasks.insert(TodoItem(title: trimmed), at: 0)
+        newTask = ""
     }
 
     private func closeTodoWindow() {
