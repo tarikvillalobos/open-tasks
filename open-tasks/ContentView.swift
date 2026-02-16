@@ -118,10 +118,10 @@ struct ContentView: View {
                 "",
                 text: $newTask,
                 prompt: Text("Nova tarefa simples...")
-                    .foregroundStyle(.white.opacity(0.66))
+                    .foregroundColor(Color.white.opacity(0.70))
             )
             .textFieldStyle(.plain)
-            .font(.system(size: 21, weight: .semibold, design: .rounded))
+            .font(.system(size: 21, weight: .medium, design: .rounded))
             .foregroundStyle(.white.opacity(0.92))
             .padding(.leading, 16)
 
