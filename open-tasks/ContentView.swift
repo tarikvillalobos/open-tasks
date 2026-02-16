@@ -70,7 +70,10 @@ struct ContentView: View {
                 HeaderIcon(symbol: "lightbulb", isActive: true)
                 HeaderIcon(symbol: "doc.on.doc")
                 HeaderIcon(symbol: "ellipsis")
-                HeaderIcon(symbol: "xmark")
+                Button(action: closeApp) {
+                    HeaderIcon(symbol: "xmark")
+                }
+                .buttonStyle(.plain)
             }
             .padding(.top, 2)
         }
@@ -149,6 +152,10 @@ struct ContentView: View {
             .font(.system(size: 11, weight: .semibold, design: .rounded))
             .foregroundStyle(.white.opacity(0.42))
         }
+    }
+
+    private func closeApp() {
+        NSApplication.shared.terminate(nil)
     }
 }
 
