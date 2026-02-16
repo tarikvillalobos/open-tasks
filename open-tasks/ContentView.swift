@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var newTask = ""
+    @State private var hostWindow: NSWindow?
 
     var body: some View {
         ZStack {
@@ -53,7 +54,13 @@ struct ContentView: View {
             .padding(.bottom, 14)
         }
         .frame(width: 410, height: 360)
-        .background(WindowConfigurator())
+        .background(
+            WindowConfigurator { window in
+                if hostWindow !== window {
+                    hostWindow = window
+                }
+            }
+        )
     }
 
     private var header: some View {
@@ -70,7 +77,7 @@ struct ContentView: View {
                 HeaderIcon(symbol: "lightbulb", isActive: true)
                 HeaderIcon(symbol: "doc.on.doc")
                 HeaderIcon(symbol: "ellipsis")
-                Button(action: closeApp) {
+                Button(action: closeTodoWindow) {
                     HeaderIcon(symbol: "xmark")
                 }
                 .buttonStyle(.plain)
@@ -154,8 +161,17 @@ struct ContentView: View {
         }
     }
 
-    private func closeApp() {
-        NSApplication.shared.terminate(nil)
+    private func closeTodoWindow() {
+        if let window = hostWindow {
+            window.orderOut(nil)
+            window.close()
+            return
+        }
+
+        if let window = NSApplication.shared.windows.first(where: { $0.isVisible }) {
+            window.orderOut(nil)
+            window.close()
+        }
     }
 }
 
@@ -180,11 +196,18 @@ private struct HeaderIcon: View {
 }
 
 private struct WindowConfigurator: NSViewRepresentable {
+    let onResolve: (NSWindow) -> Void
+
+    init(onResolve: @escaping (NSWindow) -> Void = { _ in }) {
+        self.onResolve = onResolve
+    }
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)
         DispatchQueue.main.async {
             guard let window = view.window else { return }
             configure(window)
+            onResolve(window)
         }
         return view
     }
@@ -193,6 +216,7 @@ private struct WindowConfigurator: NSViewRepresentable {
         DispatchQueue.main.async {
             guard let window = nsView.window else { return }
             configure(window)
+            onResolve(window)
         }
     }
 
