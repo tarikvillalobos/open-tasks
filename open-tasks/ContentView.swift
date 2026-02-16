@@ -14,27 +14,23 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(.regularMaterial)
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .stroke(.white.opacity(0.20), lineWidth: 1)
+                        .fill(Color.black.opacity(0.16))
                 )
-                .overlay(alignment: .top) {
-                    LinearGradient(
-                        colors: [Color.purple.opacity(0.28), Color.black.opacity(0.10), .clear],
-                        startPoint: .topTrailing,
-                        endPoint: .bottomLeading
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                }
                 .overlay(alignment: .bottomLeading) {
                     LinearGradient(
-                        colors: [Color.white.opacity(0.10), .clear],
+                        colors: [Color.white.opacity(0.08), .clear],
                         startPoint: .bottomLeading,
                         endPoint: .topTrailing
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                 }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .stroke(.white.opacity(0.18), lineWidth: 1)
+                )
 
             VStack(spacing: 18) {
                 header
