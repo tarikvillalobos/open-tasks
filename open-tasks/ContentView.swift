@@ -58,15 +58,10 @@ struct ContentView: View {
 
     private var header: some View {
         HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text("OpenTasks")
                     .font(.system(size: 38, weight: .bold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.93))
-
-                Text("IOS 26 CONCEPT")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .kerning(1.6)
-                    .foregroundStyle(.white.opacity(0.48))
             }
 
             Spacer()
