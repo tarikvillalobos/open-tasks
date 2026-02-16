@@ -34,22 +34,30 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 36, style: .continuous)
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 36, style: .continuous)
-                        .stroke(.white.opacity(0.25), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 34, style: .continuous)
+                        .stroke(.white.opacity(0.22), lineWidth: 1)
                 )
                 .overlay(alignment: .top) {
                     LinearGradient(
-                        colors: [Color.blue.opacity(0.35), Color.purple.opacity(0.20), .clear],
+                        colors: [Color.orange.opacity(0.20), Color.purple.opacity(0.17), .clear],
                         startPoint: .bottomLeading,
                         endPoint: .topTrailing
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
+                }
+                .overlay(alignment: .bottomLeading) {
+                    LinearGradient(
+                        colors: [Color.cyan.opacity(0.28), Color.blue.opacity(0.18), .clear],
+                        startPoint: .bottomLeading,
+                        endPoint: .topTrailing
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
                 }
 
-            VStack(spacing: 14) {
+            VStack(spacing: 12) {
                 header
                 inputRow
                 suggestButton
@@ -67,16 +75,16 @@ struct ContentView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("GlassDo")
-                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.92))
                 Text("IOS 26 CONCEPT")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .kerning(1.4)
+                    .font(.system(size: 7.5, weight: .semibold, design: .rounded))
+                    .kerning(0.9)
                     .foregroundStyle(.white.opacity(0.56))
             }
             Spacer()
             HStack(spacing: 8) {
-                HeaderIcon(symbol: "lightbulb")
+                HeaderIcon(symbol: "lightbulb", isActive: true)
                 HeaderIcon(symbol: "doc.on.doc")
                 HeaderIcon(symbol: "ellipsis")
                 HeaderIcon(symbol: "xmark")
@@ -89,32 +97,33 @@ struct ContentView: View {
         HStack(spacing: 8) {
             TextField("Nova tarefa simples...", text: $newTask)
                 .textFieldStyle(.plain)
-                .font(.system(size: 28, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.92))
-                .padding(.leading, 20)
+                .font(.system(size: 17, weight: .medium, design: .rounded))
+                .foregroundStyle(.white.opacity(0.82))
+                .padding(.leading, 16)
 
             Button(action: addTask) {
                 Image(systemName: "plus")
-                    .font(.system(size: 28, weight: .bold))
-                    .frame(width: 58, height: 58)
+                    .font(.system(size: 21, weight: .semibold))
+                    .frame(width: 46, height: 46)
                     .foregroundStyle(.white.opacity(0.92))
                     .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .fill(.white.opacity(0.10))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .stroke(.white.opacity(0.15), lineWidth: 1)
                             )
                     )
             }
             .buttonStyle(.plain)
+            .padding(.trailing, 5)
         }
-        .frame(height: 72)
+        .frame(height: 56)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.black.opacity(0.28))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.black.opacity(0.32))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .stroke(.white.opacity(0.12), lineWidth: 1)
                 )
         )
@@ -126,15 +135,15 @@ struct ContentView: View {
                 newTask = "Focar na tarefa mais importante de hoje"
             } label: {
                 Label("Sugerir", systemImage: "wand.and.stars")
-                    .font(.system(size: 22, weight: .semibold, design: .rounded))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 6)
                     .foregroundStyle(.white.opacity(0.9))
                     .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
                             .fill(.black.opacity(0.18))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                RoundedRectangle(cornerRadius: 9, style: .continuous)
                                     .stroke(.white.opacity(0.14), lineWidth: 1)
                             )
                     )
@@ -151,7 +160,7 @@ struct ContentView: View {
                     taskRow(for: index)
                 }
             }
-            .padding(.trailing, 8)
+            .padding(.trailing, 6)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -159,7 +168,7 @@ struct ContentView: View {
     private func taskRow(for index: Int) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "square.grid.3x3.fill")
-                .font(.system(size: 16))
+                .font(.system(size: 10))
                 .foregroundStyle(.white.opacity(0.2))
                 .padding(.top, 6)
 
@@ -167,7 +176,7 @@ struct ContentView: View {
                 tasks[index].completed.toggle()
             } label: {
                 Image(systemName: tasks[index].completed ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 30, weight: .semibold))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(tasks[index].completed ? .green : .white.opacity(0.35))
             }
             .buttonStyle(.plain)
@@ -175,17 +184,17 @@ struct ContentView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(tasks[index].title)
-                    .font(.system(size: 34, weight: .semibold, design: .rounded))
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(tasks[index].completed ? .white.opacity(0.44) : .white.opacity(0.92))
                     .strikethrough(tasks[index].completed, color: .white.opacity(0.45))
-                    .lineLimit(2)
+                    .lineLimit(1)
                 if let tag = tasks[index].tag {
                     Text(tag)
-                        .font(.system(size: 21, weight: .semibold, design: .rounded))
-                        .padding(.horizontal, 10)
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .padding(.horizontal, 9)
                         .padding(.vertical, 4)
                         .background(
-                            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
                                 .fill(.purple.opacity(0.38))
                         )
                         .foregroundStyle(.white.opacity(0.9))
@@ -193,13 +202,15 @@ struct ContentView: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(16)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .frame(minHeight: 98)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.black.opacity(tasks[index].completed ? 0.15 : 0.24))
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.black.opacity(tasks[index].completed ? 0.17 : 0.25))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .stroke(.white.opacity(0.08), lineWidth: 1)
                 )
         )
@@ -216,7 +227,7 @@ struct ContentView: View {
                 Spacer()
                 Text("\(Int(progress * 100))% concluido")
             }
-            .font(.system(size: 28, weight: .bold, design: .rounded))
+            .font(.system(size: 11, weight: .semibold, design: .rounded))
             .foregroundStyle(.white.opacity(0.48))
         }
     }
@@ -231,18 +242,19 @@ struct ContentView: View {
 
 private struct HeaderIcon: View {
     let symbol: String
+    var isActive: Bool = false
 
     var body: some View {
         Image(systemName: symbol)
-            .font(.system(size: 20, weight: .semibold))
-            .foregroundStyle(.white.opacity(0.7))
-            .frame(width: 52, height: 52)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(.white.opacity(isActive ? 0.85 : 0.62))
+            .frame(width: 32, height: 32)
             .background(
                 Circle()
-                    .fill(.white.opacity(0.08))
+                    .fill(isActive ? Color.indigo.opacity(0.32) : .white.opacity(0.08))
                     .overlay(
                         Circle()
-                            .stroke(.white.opacity(0.15), lineWidth: 1)
+                            .stroke(.white.opacity(isActive ? 0.22 : 0.15), lineWidth: 1)
                     )
             )
     }
