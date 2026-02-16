@@ -16,6 +16,13 @@ private struct TodoItem: Identifiable {
 }
 
 struct ContentView: View {
+    private let panelWidth: CGFloat = 410
+    private let maxVisibleTasks = 6
+    private let taskRowHeight: CGFloat = 44
+    private let taskRowSpacing: CGFloat = 10
+    private let emptyStateHeight: CGFloat = 120
+    private let staticLayoutHeight: CGFloat = 244
+
     @State private var newTask = ""
     @State private var tasks: [TodoItem] = []
     @State private var hostWindow: NSWindow?
@@ -28,6 +35,22 @@ struct ContentView: View {
         guard !tasks.isEmpty else { return 0 }
         let done = tasks.filter { $0.completed }.count
         return Int((Double(done) / Double(tasks.count)) * 100)
+    }
+
+    private var visibleTaskCount: Int {
+        min(tasks.count, maxVisibleTasks)
+    }
+
+    private var tasksContainerHeight: CGFloat {
+        guard !tasks.isEmpty else { return emptyStateHeight }
+        let visibleCount = visibleTaskCount
+        let rowsHeight = CGFloat(visibleCount) * taskRowHeight
+        let spacesHeight = CGFloat(max(visibleCount - 1, 0)) * taskRowSpacing
+        return rowsHeight + spacesHeight + 4
+    }
+
+    private var panelHeight: CGFloat {
+        staticLayoutHeight + tasksContainerHeight
     }
 
     var body: some View {
@@ -66,17 +89,13 @@ struct ContentView: View {
                         .stroke(.white.opacity(0.20), lineWidth: 1)
                 )
 
-            VStack(spacing: 18) {
+            VStack(spacing: 14) {
                 header
                 inputRow
                 suggestButton
 
-                Spacer(minLength: 0)
-
                 tasksSection
                     .padding(.bottom, 8)
-
-                Spacer(minLength: 0)
 
                 footer
             }
@@ -84,9 +103,9 @@ struct ContentView: View {
             .padding(.top, 20)
             .padding(.bottom, 14)
         }
-        .frame(width: 410, height: 360)
+        .frame(width: panelWidth, height: panelHeight)
         .background(
-            WindowConfigurator { window in
+            WindowConfigurator(targetSize: CGSize(width: panelWidth, height: panelHeight)) { window in
                 if hostWindow !== window {
                     hostWindow = window
                 }
@@ -199,18 +218,26 @@ struct ContentView: View {
                 Text("Vazio como o espaco...")
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.42))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else if tasks.count <= maxVisibleTasks {
+                LazyVStack(spacing: taskRowSpacing) {
+                    ForEach(tasks.indices, id: \.self) { index in
+                        taskRow(for: index)
+                    }
+                }
             } else {
                 ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 10) {
+                    LazyVStack(spacing: taskRowSpacing) {
                         ForEach(tasks.indices, id: \.self) { index in
                             taskRow(for: index)
                         }
                     }
                     .padding(.vertical, 2)
                 }
-                .frame(maxWidth: .infinity, maxHeight: 132)
             }
         }
+        .frame(maxWidth: .infinity)
+        .frame(height: tasksContainerHeight, alignment: .top)
     }
 
     private func taskRow(for index: Int) -> some View {
@@ -233,7 +260,7 @@ struct ContentView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .frame(height: taskRowHeight)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color.black.opacity(0.22))
@@ -320,9 +347,11 @@ private struct HeaderIcon: View {
 }
 
 private struct WindowConfigurator: NSViewRepresentable {
+    let targetSize: CGSize
     let onResolve: (NSWindow) -> Void
 
-    init(onResolve: @escaping (NSWindow) -> Void = { _ in }) {
+    init(targetSize: CGSize = CGSize(width: 410, height: 360), onResolve: @escaping (NSWindow) -> Void = { _ in }) {
+        self.targetSize = targetSize
         self.onResolve = onResolve
     }
 
@@ -345,23 +374,25 @@ private struct WindowConfigurator: NSViewRepresentable {
     }
 
     private func configure(_ window: NSWindow) {
-        guard window.identifier?.rawValue != "glassdo.window" else { return }
-        if !(window is KeyableBorderlessWindow) {
-            _ = object_setClass(window, KeyableBorderlessWindow.self)
+        if window.identifier?.rawValue != "glassdo.window" {
+            if !(window is KeyableBorderlessWindow) {
+                _ = object_setClass(window, KeyableBorderlessWindow.self)
+            }
+            window.identifier = NSUserInterfaceItemIdentifier("glassdo.window")
+            window.styleMask = [.borderless, .fullSizeContentView]
+            window.isMovableByWindowBackground = true
+            window.backgroundColor = .clear
+            window.isOpaque = false
+            window.hasShadow = true
+            window.level = .floating
+            window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            window.standardWindowButton(.closeButton)?.isHidden = true
+            window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+            window.standardWindowButton(.zoomButton)?.isHidden = true
         }
-        window.identifier = NSUserInterfaceItemIdentifier("glassdo.window")
-        window.styleMask = [.borderless, .fullSizeContentView]
-        window.isMovableByWindowBackground = true
-        window.backgroundColor = .clear
-        window.isOpaque = false
-        window.hasShadow = true
-        window.level = .floating
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.standardWindowButton(.closeButton)?.isHidden = true
-        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        window.standardWindowButton(.zoomButton)?.isHidden = true
+
         window.minSize = NSSize(width: 390, height: 320)
-        window.setContentSize(NSSize(width: 410, height: 360))
+        window.setContentSize(NSSize(width: targetSize.width, height: targetSize.height))
         window.makeKeyAndOrderFront(nil)
     }
 }
