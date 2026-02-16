@@ -57,7 +57,7 @@ struct ContentView: View {
 
                 Text("Vazio como o espaco...")
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.24))
+                    .foregroundStyle(.white.opacity(0.42))
                     .padding(.bottom, 8)
 
                 Spacer(minLength: 0)
@@ -83,7 +83,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text("OpenTasks")
                     .font(.system(size: 38, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.93))
+                    .foregroundStyle(.white.opacity(0.97))
             }
 
             Spacer()
@@ -114,11 +114,16 @@ struct ContentView: View {
 
     private var inputRow: some View {
         HStack(spacing: 8) {
-            TextField("Nova tarefa simples...", text: $newTask)
-                .textFieldStyle(.plain)
-                .font(.system(size: 21, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.36))
-                .padding(.leading, 16)
+            TextField(
+                "",
+                text: $newTask,
+                prompt: Text("Nova tarefa simples...")
+                    .foregroundStyle(.white.opacity(0.66))
+            )
+            .textFieldStyle(.plain)
+            .font(.system(size: 21, weight: .semibold, design: .rounded))
+            .foregroundStyle(.white.opacity(0.92))
+            .padding(.leading, 16)
 
             Button(action: {}) {
                 Image(systemName: "plus")
@@ -140,10 +145,10 @@ struct ContentView: View {
         .frame(height: 56)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.black.opacity(0.35))
+                .fill(Color.white.opacity(0.17))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(.white.opacity(0.11), lineWidth: 1.2)
+                        .stroke(.white.opacity(0.20), lineWidth: 1.2)
                 )
         )
     }
@@ -183,7 +188,7 @@ struct ContentView: View {
                 Text("0% concluido")
             }
             .font(.system(size: 11, weight: .semibold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.42))
+            .foregroundStyle(.white.opacity(0.58))
         }
     }
 
