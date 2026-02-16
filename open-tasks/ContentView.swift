@@ -74,13 +74,24 @@ struct ContentView: View {
             Spacer()
 
             HStack(spacing: 8) {
-                HeaderIcon(symbol: "lightbulb", isActive: true)
-                HeaderIcon(symbol: "doc.on.doc")
+                Button(action: {}) {
+                    HeaderIcon(symbol: "lightbulb", isActive: true)
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+
+                Button(action: {}) {
+                    HeaderIcon(symbol: "doc.on.doc")
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+
                 HeaderIcon(symbol: "ellipsis")
                 Button(action: closeTodoWindow) {
                     HeaderIcon(symbol: "xmark")
                 }
                 .buttonStyle(.plain)
+                .handCursorOnHover()
             }
             .padding(.top, 2)
         }
@@ -172,6 +183,24 @@ struct ContentView: View {
             window.orderOut(nil)
             window.close()
         }
+    }
+}
+
+private struct HandCursorOnHover: ViewModifier {
+    func body(content: Content) -> some View {
+        content.onHover { isHovering in
+            if isHovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+        }
+    }
+}
+
+private extension View {
+    func handCursorOnHover() -> some View {
+        modifier(HandCursorOnHover())
     }
 }
 
