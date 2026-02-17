@@ -248,7 +248,7 @@ struct ContentView: View {
                     }
                 }
             } else {
-                ScrollView(showsIndicators: false) {
+                ScrollView(showsIndicators: true) {
                     LazyVStack(spacing: taskRowSpacing) {
                         ForEach(tasks.indices, id: \.self) { index in
                             taskRow(for: index)
@@ -256,6 +256,7 @@ struct ContentView: View {
                     }
                     .padding(.vertical, 2)
                 }
+                .scrollIndicators(.visible)
             }
         }
         .frame(maxWidth: .infinity)
