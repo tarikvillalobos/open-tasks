@@ -171,12 +171,11 @@ struct ContentView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text(panelTitle)
-                    .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.97))
-            }
+        HStack(alignment: .center) {
+            Text(panelTitle)
+                .font(.system(size: 19, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.97))
+                .frame(height: 36, alignment: .center)
 
             Spacer()
 
@@ -200,7 +199,6 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .handCursorOnHover()
             }
-            .padding(.top, 2)
         }
     }
 
