@@ -59,17 +59,40 @@ private struct MenuBarContent: View {
 
                 Divider()
 
-                if windowStore.taskEntries.isEmpty {
-                    Text("No tasks yet")
+                if windowStore.items.isEmpty {
+                    Text("No lists open")
                         .foregroundStyle(.secondary)
                         .padding(.vertical, 6)
                 } else {
-                    ForEach(windowStore.taskEntries) { entry in
-                        Button(entry.title) {
-                            windowStore.focusWindow(id: entry.windowID)
+                    ForEach(windowStore.items) { item in
+                        Button {
+                            windowStore.focusWindow(id: item.id)
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "rectangle.stack")
+                                Text(item.title)
+                                Spacer(minLength: 0)
+                            }
+                            .contentShape(Rectangle())
                         }
                         .lineLimit(1)
                         .padding(.vertical, 4)
+                    }
+
+                    Divider()
+
+                    if windowStore.taskEntries.isEmpty {
+                        Text("No tasks yet")
+                            .foregroundStyle(.secondary)
+                            .padding(.vertical, 6)
+                    } else {
+                        ForEach(windowStore.taskEntries) { entry in
+                            Button(entry.title) {
+                                windowStore.focusWindow(id: entry.windowID)
+                            }
+                            .lineLimit(1)
+                            .padding(.vertical, 4)
+                        }
                     }
                 }
 
@@ -174,7 +197,9 @@ final class TodoWindowStore: ObservableObject {
 
     func updateTasks(window: NSWindow, tasks: [String]) {
         let id = ObjectIdentifier(window)
-        guard windows[id] != nil else { return }
+        if windows[id] == nil {
+            register(window: window)
+        }
         tasksByWindow[id] = tasks
         refreshItems()
     }
