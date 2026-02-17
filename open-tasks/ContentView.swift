@@ -23,6 +23,7 @@ struct ContentView: View {
     private let windowEdgePaddingY: CGFloat = 12
     private let maxVisibleTasks = 6
     private let taskRowHeight: CGFloat = 44
+    private let expandedTaskRowHeight: CGFloat = 84
     private let taskRowSpacing: CGFloat = 10
     private let emptyStateHeight: CGFloat = 120
     private let staticLayoutHeight: CGFloat = 244
@@ -34,6 +35,7 @@ struct ContentView: View {
     @State private var undoDismissWorkItem: DispatchWorkItem?
     @State private var editingTaskID: UUID?
     @State private var editingTaskTitle = ""
+    @State private var expandedTaskIDs: Set<UUID> = []
 
     private struct UndoSnapshot {
         let task: TodoItem
@@ -56,8 +58,11 @@ struct ContentView: View {
 
     private var tasksContainerHeight: CGFloat {
         guard !tasks.isEmpty else { return emptyStateHeight }
-        let visibleCount = visibleTaskCount
-        let rowsHeight = CGFloat(visibleCount) * taskRowHeight
+        let visibleTasks = Array(tasks.prefix(visibleTaskCount))
+        let rowsHeight = visibleTasks.reduce(CGFloat.zero) { partialResult, task in
+            partialResult + rowHeight(for: task)
+        }
+        let visibleCount = visibleTasks.count
         let spacesHeight = CGFloat(max(visibleCount - 1, 0)) * taskRowSpacing
         return rowsHeight + spacesHeight + 4
     }
@@ -294,9 +299,10 @@ struct ContentView: View {
     }
 
     private func taskRow(for index: Int) -> some View {
-        HStack(spacing: 10) {
-            let task = tasks[index]
+        let task = tasks[index]
+        let isExpanded = expandedTaskIDs.contains(task.id)
 
+        return HStack(alignment: .center, spacing: 10) {
             Button {
                 toggleTask(at: index)
             } label: {
@@ -312,6 +318,7 @@ struct ContentView: View {
                     .textFieldStyle(.plain)
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.92))
+                    .frame(maxHeight: .infinity, alignment: .center)
                     .onSubmit {
                         saveTaskEdit(for: task.id)
                     }
@@ -320,7 +327,9 @@ struct ContentView: View {
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundStyle(task.completed ? .white.opacity(0.50) : .white.opacity(0.88))
                     .strikethrough(task.completed, color: .white.opacity(0.5))
-                    .lineLimit(2)
+                    .lineLimit(isExpanded ? nil : 2)
+                    .fixedSize(horizontal: false, vertical: isExpanded)
+                    .frame(maxHeight: .infinity, alignment: .center)
             }
 
             Spacer(minLength: 0)
@@ -348,6 +357,10 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .handCursorOnHover()
             } else {
+                TaskRowActionButton(symbol: isExpanded ? "chevron.up" : "chevron.down") {
+                    toggleTaskExpansion(for: task.id)
+                }
+
                 TaskRowActionButton(symbol: "pencil") {
                     startTaskEdit(for: task.id)
                 }
@@ -358,7 +371,7 @@ struct ContentView: View {
             }
         }
         .padding(.horizontal, 12)
-        .frame(height: taskRowHeight)
+        .frame(height: rowHeight(for: task), alignment: .center)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color.black.opacity(0.22))
@@ -453,6 +466,7 @@ struct ContentView: View {
     private func deleteTask(at index: Int) {
         guard tasks.indices.contains(index) else { return }
         let removedTask = tasks.remove(at: index)
+        expandedTaskIDs.remove(removedTask.id)
 
         if editingTaskID == removedTask.id {
             cancelTaskEdit()
@@ -470,6 +484,18 @@ struct ContentView: View {
         if index < snapshot.originalIndex {
             pendingUndo = UndoSnapshot(task: snapshot.task, originalIndex: snapshot.originalIndex - 1)
         }
+    }
+
+    private func toggleTaskExpansion(for taskID: UUID) {
+        if expandedTaskIDs.contains(taskID) {
+            expandedTaskIDs.remove(taskID)
+        } else {
+            expandedTaskIDs.insert(taskID)
+        }
+    }
+
+    private func rowHeight(for task: TodoItem) -> CGFloat {
+        expandedTaskIDs.contains(task.id) ? expandedTaskRowHeight : taskRowHeight
     }
 
     private func closeTodoWindow() {
