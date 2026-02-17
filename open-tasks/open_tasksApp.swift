@@ -307,13 +307,13 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
 final class TodoWindowStore: ObservableObject {
     static let shared = TodoWindowStore()
 
-    struct Item: Identifiable {
+    struct Item: Identifiable, Equatable {
         let id: ObjectIdentifier
         let title: String
     }
 
-    struct TaskEntry: Identifiable {
-        let id = UUID()
+    struct TaskEntry: Identifiable, Equatable {
+        let id: String
         let windowID: ObjectIdentifier
         let windowTitle: String
         let title: String
@@ -353,7 +353,6 @@ final class TodoWindowStore: ObservableObject {
     func register(window: NSWindow) {
         let id = ObjectIdentifier(window)
         guard windows[id] == nil else {
-            refreshItems()
             return
         }
 
@@ -401,6 +400,7 @@ final class TodoWindowStore: ObservableObject {
         if windows[id] == nil {
             register(window: window)
         }
+        guard tasksByWindow[id] != tasks else { return }
         tasksByWindow[id] = tasks
         refreshItems()
     }
@@ -501,9 +501,10 @@ final class TodoWindowStore: ObservableObject {
             newItems.append(Item(id: id, title: windowTitle))
 
             let windowTasks = tasksByWindow[id] ?? []
-            for taskTitle in windowTasks where !taskTitle.isEmpty {
+            for (taskIndex, taskTitle) in windowTasks.enumerated() where !taskTitle.isEmpty {
                 newTaskEntries.append(
                     TaskEntry(
+                        id: "\(id)-\(taskIndex)-\(taskTitle)",
                         windowID: id,
                         windowTitle: windowTitle,
                         title: taskTitle
@@ -513,7 +514,11 @@ final class TodoWindowStore: ObservableObject {
         }
 
         order = validIDs
-        items = newItems
-        taskEntries = newTaskEntries
+        if items != newItems {
+            items = newItems
+        }
+        if taskEntries != newTaskEntries {
+            taskEntries = newTaskEntries
+        }
     }
 }

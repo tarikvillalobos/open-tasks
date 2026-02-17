@@ -151,7 +151,6 @@ struct ContentView: View {
                 if hostWindow !== window {
                     hostWindow = window
                 }
-                TodoWindowStore.shared.updateTasks(window: window, tasks: tasks.map(\.title))
             }
         )
         .onAppear {
