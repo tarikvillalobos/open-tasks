@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import ObjectiveC.runtime
 import SwiftUI
 
 private struct TodoItem: Identifiable, Equatable {
@@ -514,13 +513,18 @@ struct ContentView: View {
     }
 
     private func closeTodoWindow() {
-        if let window = hostWindow {
+        if let window = hostWindow,
+           window.identifier?.rawValue == "glassdo.window" {
+            TodoWindowStore.shared.unregister(window: window)
             window.orderOut(nil)
             window.close()
             return
         }
 
-        if let window = NSApplication.shared.windows.first(where: { $0.isVisible }) {
+        if let window = NSApplication.shared.windows.first(where: {
+            $0.identifier?.rawValue == "glassdo.window" && $0.isVisible
+        }) {
+            TodoWindowStore.shared.unregister(window: window)
             window.orderOut(nil)
             window.close()
         }
@@ -635,10 +639,6 @@ private struct WindowConfigurator: NSViewRepresentable {
     }
 
     private func configure(_ window: NSWindow) {
-        if !(window is KeyableBorderlessWindow) {
-            _ = object_setClass(window, KeyableBorderlessWindow.self)
-        }
-
         if window.identifier?.rawValue != "glassdo.window" {
             window.identifier = NSUserInterfaceItemIdentifier("glassdo.window")
             window.styleMask = [.borderless, .fullSizeContentView]
@@ -661,9 +661,4 @@ private struct WindowConfigurator: NSViewRepresentable {
             window.setContentSize(desiredSize)
         }
     }
-}
-
-private final class KeyableBorderlessWindow: NSWindow {
-    override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { true }
 }

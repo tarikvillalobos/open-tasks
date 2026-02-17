@@ -249,17 +249,23 @@ final class TodoWindowStore: ObservableObject {
                 remove(windowID: id)
                 continue
             }
+            unregister(window: window)
             window.orderOut(nil)
             window.close()
         }
         refreshItems()
     }
 
+    func unregister(window: NSWindow) {
+        let id = ObjectIdentifier(window)
+        remove(windowID: id)
+    }
+
     func taskEntries(for windowID: ObjectIdentifier) -> [TaskEntry] {
         taskEntries.filter { $0.windowID == windowID }
     }
 
-    private func remove(windowID: ObjectIdentifier) {
+    private func remove(windowID: ObjectIdentifier, shouldRefresh: Bool = true) {
         if let observer = closeObservers[windowID] {
             NotificationCenter.default.removeObserver(observer)
             closeObservers.removeValue(forKey: windowID)
@@ -268,7 +274,9 @@ final class TodoWindowStore: ObservableObject {
         titles.removeValue(forKey: windowID)
         tasksByWindow.removeValue(forKey: windowID)
         order.removeAll { $0 == windowID }
-        refreshItems()
+        if shouldRefresh {
+            refreshItems()
+        }
     }
 
     private func refreshItems() {
@@ -278,7 +286,7 @@ final class TodoWindowStore: ObservableObject {
 
         for id in order {
             guard let window = windows[id]?.value else {
-                remove(windowID: id)
+                remove(windowID: id, shouldRefresh: false)
                 continue
             }
             _ = window
