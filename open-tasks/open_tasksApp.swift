@@ -30,6 +30,7 @@ private struct MenuBarContent: View {
     @StateObject private var windowStore = TodoWindowStore.shared
     @Environment(\.openWindow) private var openWindow
     @State private var isTasksExpanded = false
+    @State private var expandedWindowIDs: Set<ObjectIdentifier> = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -65,44 +66,60 @@ private struct MenuBarContent: View {
                         .padding(.vertical, 6)
                 } else {
                     ForEach(windowStore.items) { item in
-                        Button {
-                            windowStore.focusWindow(id: item.id)
-                        } label: {
+                        VStack(alignment: .leading, spacing: 2) {
                             HStack(spacing: 8) {
-                                Image(systemName: "rectangle.stack")
-                                Text(item.title)
-                                Spacer(minLength: 0)
+                                Button {
+                                    windowStore.focusWindow(id: item.id)
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "rectangle.stack")
+                                        Text(item.title)
+                                        Spacer(minLength: 0)
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+
+                                Button {
+                                    toggleExpandedTasks(for: item.id)
+                                } label: {
+                                    Image(systemName: expandedWindowIDs.contains(item.id) ? "chevron.down" : "chevron.right")
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .frame(width: 16, height: 16)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .contentShape(Rectangle())
+                            .padding(.vertical, 4)
+
+                            if expandedWindowIDs.contains(item.id) {
+                                let entries = windowStore.taskEntries(for: item.id)
+                                if entries.isEmpty {
+                                    Text("No tasks yet")
+                                        .foregroundStyle(.secondary)
+                                        .padding(.leading, 24)
+                                        .padding(.bottom, 4)
+                                } else {
+                                    ForEach(entries) { entry in
+                                        Button(entry.title) {
+                                            windowStore.focusWindow(id: item.id)
+                                        }
+                                        .lineLimit(1)
+                                        .padding(.leading, 24)
+                                        .padding(.vertical, 2)
+                                    }
+                                }
+                            }
                         }
-                        .lineLimit(1)
-                        .padding(.vertical, 4)
                     }
 
                     Divider()
 
-                    if windowStore.taskEntries.isEmpty {
-                        Text("No tasks yet")
-                            .foregroundStyle(.secondary)
-                            .padding(.vertical, 6)
-                    } else {
-                        ForEach(windowStore.taskEntries) { entry in
-                            Button(entry.title) {
-                                windowStore.focusWindow(id: entry.windowID)
-                            }
-                            .lineLimit(1)
-                            .padding(.vertical, 4)
-                        }
+                    Button("Close All Open") {
+                        windowStore.closeAll()
                     }
+                    .disabled(windowStore.items.isEmpty)
+                    .padding(.vertical, 6)
                 }
-
-                Divider()
-
-                Button("Close All Open") {
-                    windowStore.closeAll()
-                }
-                .disabled(windowStore.items.isEmpty)
-                .padding(.vertical, 6)
             }
 
             Divider()
@@ -123,8 +140,20 @@ private struct MenuBarContent: View {
         .frame(width: 280, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .animation(.easeInOut(duration: 0.15), value: isTasksExpanded)
+        .animation(.easeInOut(duration: 0.15), value: expandedWindowIDs)
         .onAppear {
             isTasksExpanded = true
+        }
+        .onChange(of: windowStore.items.map(\.id)) { currentIDs in
+            expandedWindowIDs = expandedWindowIDs.intersection(Set(currentIDs))
+        }
+    }
+
+    private func toggleExpandedTasks(for windowID: ObjectIdentifier) {
+        if expandedWindowIDs.contains(windowID) {
+            expandedWindowIDs.remove(windowID)
+        } else {
+            expandedWindowIDs.insert(windowID)
         }
     }
 }
@@ -224,6 +253,10 @@ final class TodoWindowStore: ObservableObject {
             window.close()
         }
         refreshItems()
+    }
+
+    func taskEntries(for windowID: ObjectIdentifier) -> [TaskEntry] {
+        taskEntries.filter { $0.windowID == windowID }
     }
 
     private func remove(windowID: ObjectIdentifier) {
