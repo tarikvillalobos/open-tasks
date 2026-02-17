@@ -32,6 +32,8 @@ struct ContentView: View {
     @State private var hostWindow: NSWindow?
     @State private var pendingUndo: UndoSnapshot?
     @State private var undoDismissWorkItem: DispatchWorkItem?
+    @State private var editingTaskID: UUID?
+    @State private var editingTaskTitle = ""
 
     private struct UndoSnapshot {
         let task: TodoItem
@@ -293,33 +295,81 @@ struct ContentView: View {
 
     private func taskRow(for index: Int) -> some View {
         HStack(spacing: 10) {
+            let task = tasks[index]
+
             Button {
                 toggleTask(at: index)
             } label: {
-                Image(systemName: tasks[index].completed ? "checkmark.circle.fill" : "circle")
+                Image(systemName: task.completed ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(tasks[index].completed ? .green : .white.opacity(0.50))
-            }
-            .buttonStyle(.plain)
-
-            Text(tasks[index].title)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                .foregroundStyle(tasks[index].completed ? .white.opacity(0.50) : .white.opacity(0.88))
-                .strikethrough(tasks[index].completed, color: .white.opacity(0.5))
-                .lineLimit(2)
-
-            Spacer(minLength: 0)
-
-            Button {
-                deleteTask(at: index)
-            } label: {
-                Image(systemName: "trash")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.62))
-                    .frame(width: 24, height: 24)
+                    .foregroundStyle(task.completed ? .green : .white.opacity(0.50))
             }
             .buttonStyle(.plain)
             .handCursorOnHover()
+
+            if editingTaskID == task.id {
+                TextField("", text: $editingTaskTitle)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .onSubmit {
+                        saveTaskEdit(for: task.id)
+                    }
+            } else {
+                Text(task.title)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(task.completed ? .white.opacity(0.50) : .white.opacity(0.88))
+                    .strikethrough(task.completed, color: .white.opacity(0.5))
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 0)
+
+            if editingTaskID == task.id {
+                Button {
+                    saveTaskEdit(for: task.id)
+                } label: {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.82))
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+
+                Button {
+                    cancelTaskEdit()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.62))
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+            } else {
+                Button {
+                    startTaskEdit(for: task.id)
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.62))
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+
+                Button {
+                    deleteTask(at: index)
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.62))
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+            }
         }
         .padding(.horizontal, 12)
         .frame(height: taskRowHeight)
@@ -395,9 +445,32 @@ struct ContentView: View {
         tasks.insert(task, at: insertionIndex)
     }
 
+    private func startTaskEdit(for taskID: UUID) {
+        guard let task = tasks.first(where: { $0.id == taskID }) else { return }
+        editingTaskID = taskID
+        editingTaskTitle = task.title
+    }
+
+    private func saveTaskEdit(for taskID: UUID) {
+        let trimmed = editingTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        defer { cancelTaskEdit() }
+        guard !trimmed.isEmpty else { return }
+        guard let index = tasks.firstIndex(where: { $0.id == taskID }) else { return }
+        tasks[index].title = trimmed
+    }
+
+    private func cancelTaskEdit() {
+        editingTaskID = nil
+        editingTaskTitle = ""
+    }
+
     private func deleteTask(at index: Int) {
         guard tasks.indices.contains(index) else { return }
         let removedTask = tasks.remove(at: index)
+
+        if editingTaskID == removedTask.id {
+            cancelTaskEdit()
+        }
 
         guard let snapshot = pendingUndo else { return }
 
