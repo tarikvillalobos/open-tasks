@@ -348,27 +348,13 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .handCursorOnHover()
             } else {
-                Button {
+                TaskRowActionButton(symbol: "pencil") {
                     startTaskEdit(for: task.id)
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.62))
-                        .frame(width: 24, height: 24)
                 }
-                .buttonStyle(.plain)
-                .handCursorOnHover()
 
-                Button {
+                TaskRowActionButton(symbol: "trash") {
                     deleteTask(at: index)
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.62))
-                        .frame(width: 24, height: 24)
                 }
-                .buttonStyle(.plain)
-                .handCursorOnHover()
             }
         }
         .padding(.horizontal, 12)
@@ -535,6 +521,39 @@ private struct HeaderIcon: View {
                             .stroke(.white.opacity(isActive ? 0.20 : 0.12), lineWidth: 1)
                     )
             )
+    }
+}
+
+private struct TaskRowActionButton: View {
+    let symbol: String
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.62))
+                .frame(width: 24, height: 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(isHovered ? .white.opacity(0.10) : .clear)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .stroke(.white.opacity(isHovered ? 0.16 : 0), lineWidth: 1)
+                        )
+                )
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+            if hovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+        }
     }
 }
 
