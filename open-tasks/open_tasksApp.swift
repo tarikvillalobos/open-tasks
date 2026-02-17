@@ -33,6 +33,10 @@ private struct MenuBarContent: View {
             NSApp.activate(ignoringOtherApps: true)
         }
 
+        Button(action: {}) {
+            Label("Config", systemImage: "gearshape")
+        }
+
         Divider()
 
         Button("Quit") {
