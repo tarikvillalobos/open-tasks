@@ -170,16 +170,16 @@ private struct TopbarHoverIcon: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 11, weight: .semibold))
-                .frame(width: 16, height: 16)
-                .padding(3)
+                .frame(width: 24, height: 24)
                 .background(
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .fill(isHovered ? .white.opacity(0.08) : .clear)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(isHovered ? .black.opacity(0.12) : .clear)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .stroke(isHovered ? .white.opacity(0.18) : .clear, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .stroke(isHovered ? .black.opacity(0.30) : .clear, lineWidth: 1)
                         )
                 )
+                .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         }
         .buttonStyle(.plain)
         .onHover { hovering in
