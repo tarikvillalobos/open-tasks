@@ -90,7 +90,9 @@ private struct MenuBarContent: View {
                                     toggleVisibilityIcon(for: item.id)
                                 }
 
-                                TopbarHoverIcon(symbol: "pencil")
+                                TopbarHoverIcon(symbol: "pencil") {
+                                    renameWindow(item)
+                                }
 
                                 TopbarHoverIcon(symbol: "trash") {
                                     windowStore.closeWindow(id: item.id)
@@ -187,6 +189,26 @@ private struct MenuBarContent: View {
     private func revealWindow(for windowID: ObjectIdentifier) {
         hiddenWindowIDs.remove(windowID)
         windowStore.showWindow(id: windowID)
+    }
+
+    private func renameWindow(_ item: TodoWindowStore.Item) {
+        let alert = NSAlert()
+        alert.messageText = "Rename OpenTask"
+        alert.informativeText = "Enter a new name."
+        alert.alertStyle = .informational
+
+        let input = NSTextField(string: item.title)
+        input.frame = NSRect(x: 0, y: 0, width: 260, height: 24)
+        alert.accessoryView = input
+
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        let newTitle = input.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !newTitle.isEmpty else { return }
+        windowStore.renameWindow(id: item.id, title: newTitle)
     }
 }
 
@@ -335,6 +357,15 @@ final class TodoWindowStore: ObservableObject {
 
     func showWindow(id: ObjectIdentifier) {
         focusWindow(id: id)
+    }
+
+    func renameWindow(id: ObjectIdentifier, title: String) {
+        guard windows[id]?.value != nil else {
+            remove(windowID: id)
+            return
+        }
+        titles[id] = title
+        refreshItems()
     }
 
     func closeAll() {
