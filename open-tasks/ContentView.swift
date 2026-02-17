@@ -309,6 +309,17 @@ struct ContentView: View {
                 .lineLimit(2)
 
             Spacer(minLength: 0)
+
+            Button {
+                deleteTask(at: index)
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.62))
+                    .frame(width: 24, height: 24)
+            }
+            .buttonStyle(.plain)
+            .handCursorOnHover()
         }
         .padding(.horizontal, 12)
         .frame(height: taskRowHeight)
@@ -382,6 +393,24 @@ struct ContentView: View {
         task.completed = false
         let insertionIndex = min(snapshot.originalIndex, tasks.count)
         tasks.insert(task, at: insertionIndex)
+    }
+
+    private func deleteTask(at index: Int) {
+        guard tasks.indices.contains(index) else { return }
+        let removedTask = tasks.remove(at: index)
+
+        guard let snapshot = pendingUndo else { return }
+
+        if snapshot.task.id == removedTask.id {
+            undoDismissWorkItem?.cancel()
+            undoDismissWorkItem = nil
+            pendingUndo = nil
+            return
+        }
+
+        if index < snapshot.originalIndex {
+            pendingUndo = UndoSnapshot(task: snapshot.task, originalIndex: snapshot.originalIndex - 1)
+        }
     }
 
     private func closeTodoWindow() {
