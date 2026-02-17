@@ -33,6 +33,9 @@ private struct MenuBarContent: View {
     @State private var isTasksExpanded = false
     @State private var expandedWindowIDs: Set<ObjectIdentifier> = []
     @State private var hiddenWindowIDs: Set<ObjectIdentifier> = []
+    @State private var editingWindowID: ObjectIdentifier?
+    @State private var editingTitleDraft = ""
+    @FocusState private var focusedTitleEditor: ObjectIdentifier?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -72,17 +75,34 @@ private struct MenuBarContent: View {
                     ForEach(windowStore.items) { item in
                         VStack(alignment: .leading, spacing: 2) {
                             HStack(spacing: 8) {
-                                Button {
-                                    revealWindow(for: item.id)
-                                } label: {
+                                if editingWindowID == item.id {
                                     HStack(spacing: 8) {
                                         Image(systemName: "rectangle.stack")
-                                        Text(item.title)
+                                        TextField("OpenTask", text: $editingTitleDraft)
+                                            .textFieldStyle(.plain)
+                                            .focused($focusedTitleEditor, equals: item.id)
+                                            .onSubmit {
+                                                saveInlineRename(for: item.id)
+                                            }
+                                            .onExitCommand {
+                                                cancelInlineRename()
+                                            }
                                         Spacer(minLength: 0)
                                     }
                                     .contentShape(Rectangle())
+                                } else {
+                                    Button {
+                                        revealWindow(for: item.id)
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "rectangle.stack")
+                                            Text(item.title)
+                                            Spacer(minLength: 0)
+                                        }
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
 
                                 TopbarHoverIcon(
                                     symbol: hiddenWindowIDs.contains(item.id) ? "eye.slash" : "eye"
@@ -90,8 +110,12 @@ private struct MenuBarContent: View {
                                     toggleVisibilityIcon(for: item.id)
                                 }
 
-                                TopbarHoverIcon(symbol: "pencil") {
-                                    renameWindow(item)
+                                TopbarHoverIcon(symbol: editingWindowID == item.id ? "checkmark" : "pencil") {
+                                    if editingWindowID == item.id {
+                                        saveInlineRename(for: item.id)
+                                    } else {
+                                        startInlineRename(item)
+                                    }
                                 }
 
                                 TopbarHoverIcon(symbol: "trash") {
@@ -165,6 +189,9 @@ private struct MenuBarContent: View {
         .onChange(of: windowStore.items.map(\.id)) { currentIDs in
             expandedWindowIDs = expandedWindowIDs.intersection(Set(currentIDs))
             hiddenWindowIDs = hiddenWindowIDs.intersection(Set(currentIDs))
+            if let editingWindowID, !Set(currentIDs).contains(editingWindowID) {
+                cancelInlineRename()
+            }
         }
     }
 
@@ -191,24 +218,27 @@ private struct MenuBarContent: View {
         windowStore.showWindow(id: windowID)
     }
 
-    private func renameWindow(_ item: TodoWindowStore.Item) {
-        let alert = NSAlert()
-        alert.messageText = "Rename OpenTask"
-        alert.informativeText = "Enter a new name."
-        alert.alertStyle = .informational
+    private func startInlineRename(_ item: TodoWindowStore.Item) {
+        editingWindowID = item.id
+        editingTitleDraft = item.title
+        DispatchQueue.main.async {
+            focusedTitleEditor = item.id
+        }
+    }
 
-        let input = NSTextField(string: item.title)
-        input.frame = NSRect(x: 0, y: 0, width: 260, height: 24)
-        alert.accessoryView = input
+    private func saveInlineRename(for windowID: ObjectIdentifier) {
+        guard editingWindowID == windowID else { return }
+        let newTitle = editingTitleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !newTitle.isEmpty {
+            windowStore.renameWindow(id: windowID, title: newTitle)
+        }
+        cancelInlineRename()
+    }
 
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
-
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-
-        let newTitle = input.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !newTitle.isEmpty else { return }
-        windowStore.renameWindow(id: item.id, title: newTitle)
+    private func cancelInlineRename() {
+        editingWindowID = nil
+        editingTitleDraft = ""
+        focusedTitleEditor = nil
     }
 }
 
