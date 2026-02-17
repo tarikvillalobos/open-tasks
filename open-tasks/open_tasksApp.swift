@@ -10,7 +10,7 @@ import SwiftUI
 @main
 struct open_tasksApp: App {
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "todo-window") {
             ContentView()
         }
         .windowStyle(.plain)

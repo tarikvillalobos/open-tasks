@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import ObjectiveC.runtime
 import SwiftUI
 
 private struct TodoItem: Identifiable {
@@ -36,6 +35,7 @@ struct ContentView: View {
     @State private var editingTaskID: UUID?
     @State private var editingTaskTitle = ""
     @State private var expandedTaskIDs: Set<UUID> = []
+    @Environment(\.openWindow) private var openWindow
 
     private struct UndoSnapshot {
         let task: TodoItem
@@ -159,7 +159,7 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .handCursorOnHover()
 
-                Button(action: {}) {
+                Button(action: duplicateTodoWindow) {
                     HeaderIcon(symbol: "doc.on.doc")
                 }
                 .buttonStyle(.plain)
@@ -510,6 +510,10 @@ struct ContentView: View {
             window.close()
         }
     }
+
+    private func duplicateTodoWindow() {
+        openWindow(id: "todo-window")
+    }
 }
 
 private struct HandCursorOnHover: ViewModifier {
@@ -612,9 +616,6 @@ private struct WindowConfigurator: NSViewRepresentable {
 
     private func configure(_ window: NSWindow) {
         if window.identifier?.rawValue != "glassdo.window" {
-            if !(window is KeyableBorderlessWindow) {
-                _ = object_setClass(window, KeyableBorderlessWindow.self)
-            }
             window.identifier = NSUserInterfaceItemIdentifier("glassdo.window")
             window.styleMask = [.borderless, .fullSizeContentView]
             window.isMovableByWindowBackground = true
@@ -632,9 +633,4 @@ private struct WindowConfigurator: NSViewRepresentable {
         window.setContentSize(NSSize(width: targetSize.width, height: targetSize.height))
         window.makeKeyAndOrderFront(nil)
     }
-}
-
-private final class KeyableBorderlessWindow: NSWindow {
-    override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { true }
 }
