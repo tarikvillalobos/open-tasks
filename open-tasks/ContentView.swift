@@ -8,7 +8,7 @@
 import AppKit
 import SwiftUI
 
-private struct TodoItem: Identifiable {
+private struct TodoItem: Identifiable, Equatable {
     let id = UUID()
     var title: String
     var completed = false
@@ -54,6 +54,10 @@ struct ContentView: View {
 
     private var visibleTaskCount: Int {
         min(tasks.count, maxVisibleTasks)
+    }
+
+    private var hostWindowID: ObjectIdentifier? {
+        hostWindow.map { ObjectIdentifier($0) }
     }
 
     private var tasksContainerHeight: CGFloat {
@@ -140,6 +144,15 @@ struct ContentView: View {
                 }
             }
         )
+        .onAppear {
+            syncMenuBarTaskList()
+        }
+        .onChange(of: tasks) { _ in
+            syncMenuBarTaskList()
+        }
+        .onChange(of: hostWindowID) { _ in
+            syncMenuBarTaskList()
+        }
     }
 
     private var header: some View {
@@ -513,6 +526,11 @@ struct ContentView: View {
 
     private func duplicateTodoWindow() {
         openWindow(id: "todo-window")
+    }
+
+    private func syncMenuBarTaskList() {
+        guard let window = hostWindow else { return }
+        TodoWindowStore.shared.updateTasks(window: window, tasks: tasks.map(\.title))
     }
 }
 

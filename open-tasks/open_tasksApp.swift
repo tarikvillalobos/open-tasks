@@ -22,28 +22,54 @@ struct open_tasksApp: App {
         MenuBarExtra("OpenTasks", systemImage: "checklist") {
             MenuBarContent()
         }
+        .menuBarExtraStyle(.window)
     }
 }
 
 private struct MenuBarContent: View {
     @StateObject private var windowStore = TodoWindowStore.shared
     @Environment(\.openWindow) private var openWindow
+    @State private var isTasksExpanded = false
 
     var body: some View {
-        Menu {
-            Button("Open Another") {
-                openWindow(id: "todo-window")
-                NSApp.activate(ignoringOtherApps: true)
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                isTasksExpanded.toggle()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "checklist")
+                    Text("Open OpenTasks")
+                    Spacer(minLength: 6)
+                    Image(systemName: isTasksExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .padding(.vertical, 8)
 
-            if windowStore.items.isEmpty {
-                Text("No OpenTasks")
-            } else {
+            if isTasksExpanded {
                 Divider()
 
-                ForEach(windowStore.items) { item in
-                    Button(item.title) {
-                        windowStore.focusWindow(id: item.id)
+                Button("Open Another") {
+                    openWindow(id: "todo-window")
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                .padding(.vertical, 6)
+
+                Divider()
+
+                if windowStore.taskEntries.isEmpty {
+                    Text("No tasks yet")
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, 6)
+                } else {
+                    ForEach(windowStore.taskEntries) { entry in
+                        Button(entry.title) {
+                            windowStore.focusWindow(id: entry.windowID)
+                        }
+                        .lineLimit(1)
+                        .padding(.vertical, 4)
                     }
                 }
 
@@ -52,19 +78,30 @@ private struct MenuBarContent: View {
                 Button("Close All Open") {
                     windowStore.closeAll()
                 }
+                .disabled(windowStore.items.isEmpty)
+                .padding(.vertical, 6)
             }
-        } label: {
-            Label("Open OpenTasks", systemImage: "checklist")
+
+            Divider()
+
+            Button(action: {}) {
+                Label("Config", systemImage: "gearshape")
+            }
+            .padding(.vertical, 8)
+
+            Divider()
+
+            Button("Quit") {
+                NSApp.terminate(nil)
+            }
+            .padding(.vertical, 8)
         }
-
-        Button(action: {}) {
-            Label("Config", systemImage: "gearshape")
-        }
-
-        Divider()
-
-        Button("Quit") {
-            NSApp.terminate(nil)
+        .padding(.horizontal, 10)
+        .frame(width: 280, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+        .animation(.easeInOut(duration: 0.15), value: isTasksExpanded)
+        .onAppear {
+            isTasksExpanded = true
         }
     }
 }
@@ -83,7 +120,15 @@ final class TodoWindowStore: ObservableObject {
         let title: String
     }
 
+    struct TaskEntry: Identifiable {
+        let id = UUID()
+        let windowID: ObjectIdentifier
+        let windowTitle: String
+        let title: String
+    }
+
     @Published private(set) var items: [Item] = []
+    @Published private(set) var taskEntries: [TaskEntry] = []
 
     private final class WeakWindow {
         weak var value: NSWindow?
@@ -95,6 +140,7 @@ final class TodoWindowStore: ObservableObject {
 
     private var windows: [ObjectIdentifier: WeakWindow] = [:]
     private var titles: [ObjectIdentifier: String] = [:]
+    private var tasksByWindow: [ObjectIdentifier: [String]] = [:]
     private var closeObservers: [ObjectIdentifier: NSObjectProtocol] = [:]
     private var order: [ObjectIdentifier] = []
     private var nextTitleIndex = 1
@@ -110,6 +156,7 @@ final class TodoWindowStore: ObservableObject {
 
         windows[id] = WeakWindow(window)
         titles[id] = "OpenTask \(nextTitleIndex)"
+        tasksByWindow[id] = []
         order.append(id)
         nextTitleIndex += 1
 
@@ -122,6 +169,13 @@ final class TodoWindowStore: ObservableObject {
         }
 
         closeObservers[id] = closeObserver
+        refreshItems()
+    }
+
+    func updateTasks(window: NSWindow, tasks: [String]) {
+        let id = ObjectIdentifier(window)
+        guard windows[id] != nil else { return }
+        tasksByWindow[id] = tasks
         refreshItems()
     }
 
@@ -154,6 +208,7 @@ final class TodoWindowStore: ObservableObject {
         }
         windows.removeValue(forKey: windowID)
         titles.removeValue(forKey: windowID)
+        tasksByWindow.removeValue(forKey: windowID)
         order.removeAll { $0 == windowID }
         refreshItems()
     }
@@ -161,6 +216,7 @@ final class TodoWindowStore: ObservableObject {
     private func refreshItems() {
         var validIDs: [ObjectIdentifier] = []
         var newItems: [Item] = []
+        var newTaskEntries: [TaskEntry] = []
 
         for id in order {
             guard let window = windows[id]?.value else {
@@ -169,10 +225,23 @@ final class TodoWindowStore: ObservableObject {
             }
             _ = window
             validIDs.append(id)
-            newItems.append(Item(id: id, title: titles[id] ?? "OpenTask"))
+            let windowTitle = titles[id] ?? "OpenTask"
+            newItems.append(Item(id: id, title: windowTitle))
+
+            let windowTasks = tasksByWindow[id] ?? []
+            for taskTitle in windowTasks where !taskTitle.isEmpty {
+                newTaskEntries.append(
+                    TaskEntry(
+                        windowID: id,
+                        windowTitle: windowTitle,
+                        title: taskTitle
+                    )
+                )
+            }
         }
 
         order = validIDs
         items = newItems
+        taskEntries = newTaskEntries
     }
 }
