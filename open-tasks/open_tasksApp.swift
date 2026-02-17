@@ -49,6 +49,7 @@ private struct MenuBarContent: View {
             }
             .buttonStyle(.plain)
             .padding(.vertical, 8)
+            .handCursorOnHover()
 
             if isTasksExpanded {
                 Divider()
@@ -58,6 +59,7 @@ private struct MenuBarContent: View {
                     NSApp.activate(ignoringOtherApps: true)
                 }
                 .padding(.vertical, 6)
+                .handCursorOnHover()
 
                 Divider()
 
@@ -121,6 +123,7 @@ private struct MenuBarContent: View {
                     }
                     .disabled(windowStore.items.isEmpty)
                     .padding(.vertical, 6)
+                    .handCursorOnHover()
                 }
             }
 
@@ -130,6 +133,7 @@ private struct MenuBarContent: View {
                 Label("Config", systemImage: "gearshape")
             }
             .padding(.vertical, 8)
+            .handCursorOnHover()
 
             Divider()
 
@@ -137,6 +141,7 @@ private struct MenuBarContent: View {
                 NSApp.terminate(nil)
             }
             .padding(.vertical, 8)
+            .handCursorOnHover()
         }
         .padding(.horizontal, 10)
         .frame(width: 280, alignment: .leading)
@@ -157,6 +162,24 @@ private struct MenuBarContent: View {
         } else {
             expandedWindowIDs.insert(windowID)
         }
+    }
+}
+
+private struct HandCursorOnHoverModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content.onHover { hovering in
+            if hovering {
+                NSCursor.pointingHand.set()
+            } else {
+                NSCursor.arrow.set()
+            }
+        }
+    }
+}
+
+private extension View {
+    func handCursorOnHover() -> some View {
+        modifier(HandCursorOnHoverModifier())
     }
 }
 
