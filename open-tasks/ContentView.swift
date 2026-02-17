@@ -379,6 +379,8 @@ struct ContentView: View {
                     startTaskEdit(for: task.id)
                 }
 
+                TaskRowPassiveIcon(symbol: "pin")
+
                 TaskRowActionButton(symbol: "trash") {
                     deleteTask(at: index)
                 }
@@ -608,6 +610,17 @@ private struct TaskRowActionButton: View {
                 NSCursor.pop()
             }
         }
+    }
+}
+
+private struct TaskRowPassiveIcon: View {
+    let symbol: String
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.white.opacity(0.62))
+            .frame(width: 24, height: 24)
     }
 }
 
