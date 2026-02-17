@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import AppKit
 
 @main
 struct open_tasksApp: App {
@@ -80,22 +81,15 @@ private struct MenuBarContent: View {
                                 }
                                 .buttonStyle(.plain)
 
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .frame(width: 16, height: 16)
+                                TopbarHoverIcon(symbol: "pencil")
 
-                                Image(systemName: "trash")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .frame(width: 16, height: 16)
+                                TopbarHoverIcon(symbol: "trash")
 
-                                Button {
+                                TopbarHoverIcon(
+                                    symbol: expandedWindowIDs.contains(item.id) ? "chevron.down" : "chevron.right"
+                                ) {
                                     toggleExpandedTasks(for: item.id)
-                                } label: {
-                                    Image(systemName: expandedWindowIDs.contains(item.id) ? "chevron.down" : "chevron.right")
-                                        .font(.system(size: 11, weight: .semibold))
-                                        .frame(width: 16, height: 16)
                                 }
-                                .buttonStyle(.plain)
                             }
                             .padding(.vertical, 4)
 
@@ -162,6 +156,39 @@ private struct MenuBarContent: View {
             expandedWindowIDs.remove(windowID)
         } else {
             expandedWindowIDs.insert(windowID)
+        }
+    }
+}
+
+private struct TopbarHoverIcon: View {
+    let symbol: String
+    var action: () -> Void = {}
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 11, weight: .semibold))
+                .frame(width: 16, height: 16)
+                .padding(3)
+                .background(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(isHovered ? .white.opacity(0.08) : .clear)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .stroke(isHovered ? .white.opacity(0.18) : .clear, lineWidth: 1)
+                        )
+                )
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+            if hovering {
+                NSCursor.pointingHand.set()
+            } else {
+                NSCursor.arrow.set()
+            }
         }
     }
 }
