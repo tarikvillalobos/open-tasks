@@ -80,6 +80,10 @@ private struct MenuBarContent: View {
                                 }
                                 .buttonStyle(.plain)
 
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .frame(width: 16, height: 16)
+
                                 Image(systemName: "trash")
                                     .font(.system(size: 11, weight: .semibold))
                                     .frame(width: 16, height: 16)
