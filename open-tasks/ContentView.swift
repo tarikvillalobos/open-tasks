@@ -30,6 +30,13 @@ struct ContentView: View {
     @State private var newTask = ""
     @State private var tasks: [TodoItem] = []
     @State private var hostWindow: NSWindow?
+    @State private var pendingUndo: UndoSnapshot?
+    @State private var undoDismissWorkItem: DispatchWorkItem?
+
+    private struct UndoSnapshot {
+        let task: TodoItem
+        let originalIndex: Int
+    }
 
     private var pendingCount: Int {
         tasks.filter { !$0.completed }.count
@@ -253,6 +260,34 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: tasksContainerHeight, alignment: .top)
+        .overlay(alignment: .topTrailing) {
+            if pendingUndo != nil {
+                undoFloatingButton
+                    .padding(.top, -34)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.16), value: pendingUndo != nil)
+    }
+
+    private var undoFloatingButton: some View {
+        Button("Desfazer") {
+            undoLastCompletion()
+        }
+        .buttonStyle(.plain)
+        .font(.system(size: 11, weight: .bold, design: .rounded))
+        .foregroundStyle(.white.opacity(0.94))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(.black.opacity(0.26))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(.white.opacity(0.12), lineWidth: 1)
+                )
+        )
+        .handCursorOnHover()
     }
 
     private func taskRow(for index: Int) -> some View {
@@ -318,8 +353,34 @@ struct ContentView: View {
         }
 
         var task = tasks.remove(at: index)
+        registerUndo(for: task, originalIndex: index)
         task.completed = true
         tasks.append(task)
+    }
+
+    private func registerUndo(for task: TodoItem, originalIndex: Int) {
+        undoDismissWorkItem?.cancel()
+        pendingUndo = UndoSnapshot(task: task, originalIndex: originalIndex)
+
+        let workItem = DispatchWorkItem {
+            pendingUndo = nil
+            undoDismissWorkItem = nil
+        }
+        undoDismissWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: workItem)
+    }
+
+    private func undoLastCompletion() {
+        guard let snapshot = pendingUndo else { return }
+        undoDismissWorkItem?.cancel()
+        undoDismissWorkItem = nil
+        pendingUndo = nil
+
+        guard let currentIndex = tasks.firstIndex(where: { $0.id == snapshot.task.id }) else { return }
+        var task = tasks.remove(at: currentIndex)
+        task.completed = false
+        let insertionIndex = min(snapshot.originalIndex, tasks.count)
+        tasks.insert(task, at: insertionIndex)
     }
 
     private func closeTodoWindow() {
