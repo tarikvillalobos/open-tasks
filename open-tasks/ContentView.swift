@@ -150,8 +150,6 @@ struct ContentView: View {
             ) { window in
                 if hostWindow !== window {
                     hostWindow = window
-                    NSApp.activate(ignoringOtherApps: true)
-                    window.makeKeyAndOrderFront(nil)
                 }
                 TodoWindowStore.shared.updateTasks(window: window, tasks: tasks.map(\.title))
             }
@@ -530,6 +528,7 @@ struct ContentView: View {
     private func closeTodoWindow() {
         if let window = hostWindow,
            window.identifier?.rawValue == "glassdo.window" {
+            TodoWindowStore.shared.prepareForWindowClose()
             TodoWindowStore.shared.unregister(window: window)
             window.orderOut(nil)
             window.close()
@@ -539,6 +538,7 @@ struct ContentView: View {
         if let window = NSApplication.shared.windows.first(where: {
             $0.identifier?.rawValue == "glassdo.window" && $0.isVisible
         }) {
+            TodoWindowStore.shared.prepareForWindowClose()
             TodoWindowStore.shared.unregister(window: window)
             window.orderOut(nil)
             window.close()
@@ -546,6 +546,7 @@ struct ContentView: View {
     }
 
     private func duplicateTodoWindow() {
+        TodoWindowStore.shared.recordExplicitOpenRequest()
         openWindow(id: "todo-window")
     }
 
@@ -680,7 +681,6 @@ private struct WindowConfigurator: NSViewRepresentable {
             window.standardWindowButton(.closeButton)?.isHidden = true
             window.standardWindowButton(.miniaturizeButton)?.isHidden = true
             window.standardWindowButton(.zoomButton)?.isHidden = true
-            window.makeKeyAndOrderFront(nil)
         }
 
         TodoWindowStore.shared.register(window: window)

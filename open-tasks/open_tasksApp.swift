@@ -59,6 +59,7 @@ private struct MenuBarContent: View {
                 Divider()
 
                 Button("Open Another") {
+                    windowStore.recordExplicitOpenRequest()
                     openWindow(id: "todo-window")
                     NSApp.activate(ignoringOtherApps: true)
                 }
@@ -297,6 +298,10 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
     }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        false
+    }
 }
 
 final class TodoWindowStore: ObservableObject {
@@ -331,13 +336,45 @@ final class TodoWindowStore: ObservableObject {
     private var closeObservers: [ObjectIdentifier: NSObjectProtocol] = [:]
     private var order: [ObjectIdentifier] = []
     private var nextTitleIndex = 1
+    private var expectedRegistrations = 0
+    private var hasAcceptedInitialRegistration = false
 
     private init() {}
+
+    func recordExplicitOpenRequest() {
+        expectedRegistrations += 1
+    }
+
+    func prepareForWindowClose() {
+        // Clear any pending explicit-open tokens so close actions reset state.
+        expectedRegistrations = 0
+    }
 
     func register(window: NSWindow) {
         let id = ObjectIdentifier(window)
         guard windows[id] == nil else {
             refreshItems()
+            return
+        }
+
+        let shouldAllowRegistration: Bool
+        if expectedRegistrations > 0 {
+            expectedRegistrations -= 1
+            shouldAllowRegistration = true
+        } else if !hasAcceptedInitialRegistration {
+            hasAcceptedInitialRegistration = true
+            shouldAllowRegistration = true
+        } else {
+            shouldAllowRegistration = false
+        }
+
+        if !shouldAllowRegistration {
+            // SwiftUI can recreate a WindowGroup instance immediately after close.
+            // Ignore and close that unexpected window so close actions are final.
+            DispatchQueue.main.async {
+                window.orderOut(nil)
+                window.close()
+            }
             return
         }
 
@@ -399,6 +436,7 @@ final class TodoWindowStore: ObservableObject {
     }
 
     func closeAll() {
+        prepareForWindowClose()
         let currentIDs = order
         for id in currentIDs {
             guard let window = windows[id]?.value else {
@@ -413,6 +451,7 @@ final class TodoWindowStore: ObservableObject {
     }
 
     func closeWindow(id: ObjectIdentifier) {
+        prepareForWindowClose()
         guard let window = windows[id]?.value else {
             remove(windowID: id)
             return
