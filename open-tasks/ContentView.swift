@@ -36,6 +36,7 @@ struct ContentView: View {
     @State private var editingTaskID: UUID?
     @State private var editingTaskTitle = ""
     @State private var expandedTaskIDs: Set<UUID> = []
+    @StateObject private var windowStore = TodoWindowStore.shared
     @FocusState private var isInputFocused: Bool
     @Environment(\.openWindow) private var openWindow
 
@@ -60,6 +61,12 @@ struct ContentView: View {
 
     private var hostWindowID: ObjectIdentifier? {
         hostWindow.map { ObjectIdentifier($0) }
+    }
+
+    private var panelTitle: String {
+        guard let windowID = hostWindowID else { return "OpenTasks" }
+        guard let item = windowStore.items.first(where: { $0.id == windowID }) else { return "OpenTasks" }
+        return item.title.hasPrefix("OpenTask ") ? "OpenTasks" : item.title
     }
 
     private var tasksContainerHeight: CGFloat {
@@ -166,7 +173,7 @@ struct ContentView: View {
     private var header: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("OpenTasks")
+                Text(panelTitle)
                     .font(.system(size: 38, weight: .bold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.97))
             }
