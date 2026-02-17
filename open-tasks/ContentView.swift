@@ -174,7 +174,7 @@ struct ContentView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(panelTitle)
-                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                    .font(.system(size: 19, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.97))
             }
 
