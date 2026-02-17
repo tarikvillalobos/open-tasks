@@ -85,7 +85,9 @@ private struct MenuBarContent: View {
 
                                 TopbarHoverIcon(symbol: "pencil")
 
-                                TopbarHoverIcon(symbol: "trash")
+                                TopbarHoverIcon(symbol: "trash") {
+                                    windowStore.closeWindow(id: item.id)
+                                }
 
                                 TopbarHoverIcon(
                                     symbol: expandedWindowIDs.contains(item.id) ? "chevron.down" : "chevron.right"
@@ -311,6 +313,17 @@ final class TodoWindowStore: ObservableObject {
             window.orderOut(nil)
             window.close()
         }
+        refreshItems()
+    }
+
+    func closeWindow(id: ObjectIdentifier) {
+        guard let window = windows[id]?.value else {
+            remove(windowID: id)
+            return
+        }
+        unregister(window: window)
+        window.orderOut(nil)
+        window.close()
         refreshItems()
     }
 
