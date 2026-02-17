@@ -629,6 +629,7 @@ private struct WindowConfigurator: NSViewRepresentable {
             window.standardWindowButton(.zoomButton)?.isHidden = true
         }
 
+        TodoWindowStore.shared.register(window: window)
         window.minSize = NSSize(width: 390, height: 320)
         window.setContentSize(NSSize(width: targetSize.width, height: targetSize.height))
         window.makeKeyAndOrderFront(nil)
