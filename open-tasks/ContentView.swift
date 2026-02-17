@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import ObjectiveC.runtime
 import SwiftUI
 
 private struct TodoItem: Identifiable, Equatable {
@@ -35,6 +36,7 @@ struct ContentView: View {
     @State private var editingTaskID: UUID?
     @State private var editingTaskTitle = ""
     @State private var expandedTaskIDs: Set<UUID> = []
+    @FocusState private var isInputFocused: Bool
     @Environment(\.openWindow) private var openWindow
 
     private struct UndoSnapshot {
@@ -141,12 +143,17 @@ struct ContentView: View {
             ) { window in
                 if hostWindow !== window {
                     hostWindow = window
+                    NSApp.activate(ignoringOtherApps: true)
+                    window.makeKeyAndOrderFront(nil)
                 }
                 TodoWindowStore.shared.updateTasks(window: window, tasks: tasks.map(\.title))
             }
         )
         .onAppear {
             syncMenuBarTaskList()
+            DispatchQueue.main.async {
+                isInputFocused = true
+            }
         }
         .onChange(of: tasks) { _ in
             syncMenuBarTaskList()
@@ -202,6 +209,7 @@ struct ContentView: View {
             .font(.system(size: 21, weight: .medium, design: .rounded))
             .foregroundStyle(.white.opacity(0.92))
             .padding(.leading, 16)
+            .focused($isInputFocused)
             .onSubmit(addTask)
 
             Button(action: addTask) {
@@ -627,6 +635,7 @@ private struct TaskRowPassiveIcon: View {
 private struct WindowConfigurator: NSViewRepresentable {
     let targetSize: CGSize
     let onResolve: (NSWindow) -> Void
+    private static var patchedWindowClasses: Set<ObjectIdentifier> = []
 
     init(targetSize: CGSize = CGSize(width: 410, height: 360), onResolve: @escaping (NSWindow) -> Void = { _ in }) {
         self.targetSize = targetSize
@@ -652,6 +661,8 @@ private struct WindowConfigurator: NSViewRepresentable {
     }
 
     private func configure(_ window: NSWindow) {
+        ensureWindowCanBecomeKey(window)
+
         if window.identifier?.rawValue != "glassdo.window" {
             window.identifier = NSUserInterfaceItemIdentifier("glassdo.window")
             window.styleMask = [.borderless, .fullSizeContentView]
@@ -673,5 +684,29 @@ private struct WindowConfigurator: NSViewRepresentable {
         if window.frame.size != desiredSize {
             window.setContentSize(desiredSize)
         }
+    }
+
+    private func ensureWindowCanBecomeKey(_ window: NSWindow) {
+        guard let windowClass = object_getClass(window) else { return }
+        let classID = ObjectIdentifier(windowClass)
+        guard !Self.patchedWindowClasses.contains(classID) else { return }
+
+        let canBecomeKey: @convention(block) (AnyObject) -> Bool = { _ in true }
+        let canBecomeMain: @convention(block) (AnyObject) -> Bool = { _ in true }
+
+        class_addMethod(
+            windowClass,
+            #selector(getter: NSWindow.canBecomeKey),
+            imp_implementationWithBlock(canBecomeKey),
+            "B@:"
+        )
+        class_addMethod(
+            windowClass,
+            #selector(getter: NSWindow.canBecomeMain),
+            imp_implementationWithBlock(canBecomeMain),
+            "B@:"
+        )
+
+        Self.patchedWindowClasses.insert(classID)
     }
 }
