@@ -83,6 +83,8 @@ private struct MenuBarContent: View {
                                 }
                                 .buttonStyle(.plain)
 
+                                TopbarHoverIcon(symbol: "eye")
+
                                 TopbarHoverIcon(symbol: "pencil")
 
                                 TopbarHoverIcon(symbol: "trash") {
