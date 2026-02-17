@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import ObjectiveC.runtime
 import SwiftUI
 
 private struct TodoItem: Identifiable, Equatable {
@@ -634,6 +635,10 @@ private struct WindowConfigurator: NSViewRepresentable {
     }
 
     private func configure(_ window: NSWindow) {
+        if !(window is KeyableBorderlessWindow) {
+            _ = object_setClass(window, KeyableBorderlessWindow.self)
+        }
+
         if window.identifier?.rawValue != "glassdo.window" {
             window.identifier = NSUserInterfaceItemIdentifier("glassdo.window")
             window.styleMask = [.borderless, .fullSizeContentView]
@@ -646,11 +651,19 @@ private struct WindowConfigurator: NSViewRepresentable {
             window.standardWindowButton(.closeButton)?.isHidden = true
             window.standardWindowButton(.miniaturizeButton)?.isHidden = true
             window.standardWindowButton(.zoomButton)?.isHidden = true
+            window.makeKeyAndOrderFront(nil)
         }
 
         TodoWindowStore.shared.register(window: window)
         window.minSize = NSSize(width: 390, height: 320)
-        window.setContentSize(NSSize(width: targetSize.width, height: targetSize.height))
-        window.makeKeyAndOrderFront(nil)
+        let desiredSize = NSSize(width: targetSize.width, height: targetSize.height)
+        if window.frame.size != desiredSize {
+            window.setContentSize(desiredSize)
+        }
     }
+}
+
+private final class KeyableBorderlessWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
 }
