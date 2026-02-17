@@ -30,7 +30,7 @@ private struct MenuBarContent: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Menu("Open OpenTasks") {
+        Menu {
             Button("Open Another") {
                 openWindow(id: "todo-window")
                 NSApp.activate(ignoringOtherApps: true)
@@ -53,6 +53,8 @@ private struct MenuBarContent: View {
                     windowStore.closeAll()
                 }
             }
+        } label: {
+            Label("Open OpenTasks", systemImage: "checklist")
         }
 
         Button(action: {}) {
