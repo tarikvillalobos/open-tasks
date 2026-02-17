@@ -73,7 +73,7 @@ private struct MenuBarContent: View {
                         VStack(alignment: .leading, spacing: 2) {
                             HStack(spacing: 8) {
                                 Button {
-                                    windowStore.focusWindow(id: item.id)
+                                    revealWindow(for: item.id)
                                 } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "rectangle.stack")
@@ -114,7 +114,7 @@ private struct MenuBarContent: View {
                                 } else {
                                     ForEach(entries) { entry in
                                         Button(entry.title) {
-                                            windowStore.focusWindow(id: item.id)
+                                            revealWindow(for: item.id)
                                         }
                                         .lineLimit(1)
                                         .padding(.leading, 24)
@@ -177,9 +177,16 @@ private struct MenuBarContent: View {
     private func toggleVisibilityIcon(for windowID: ObjectIdentifier) {
         if hiddenWindowIDs.contains(windowID) {
             hiddenWindowIDs.remove(windowID)
+            windowStore.showWindow(id: windowID)
         } else {
             hiddenWindowIDs.insert(windowID)
+            windowStore.hideWindow(id: windowID)
         }
+    }
+
+    private func revealWindow(for windowID: ObjectIdentifier) {
+        hiddenWindowIDs.remove(windowID)
+        windowStore.showWindow(id: windowID)
     }
 }
 
@@ -316,6 +323,18 @@ final class TodoWindowStore: ObservableObject {
         }
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func hideWindow(id: ObjectIdentifier) {
+        guard let window = windows[id]?.value else {
+            remove(windowID: id)
+            return
+        }
+        window.orderOut(nil)
+    }
+
+    func showWindow(id: ObjectIdentifier) {
+        focusWindow(id: id)
     }
 
     func closeAll() {
