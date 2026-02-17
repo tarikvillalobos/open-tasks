@@ -80,6 +80,10 @@ private struct MenuBarContent: View {
                                 }
                                 .buttonStyle(.plain)
 
+                                Image(systemName: "trash")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .frame(width: 16, height: 16)
+
                                 Button {
                                     toggleExpandedTasks(for: item.id)
                                 } label: {
