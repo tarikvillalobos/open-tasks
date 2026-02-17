@@ -32,6 +32,7 @@ private struct MenuBarContent: View {
     @Environment(\.openWindow) private var openWindow
     @State private var isTasksExpanded = false
     @State private var expandedWindowIDs: Set<ObjectIdentifier> = []
+    @State private var hiddenWindowIDs: Set<ObjectIdentifier> = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -83,7 +84,11 @@ private struct MenuBarContent: View {
                                 }
                                 .buttonStyle(.plain)
 
-                                TopbarHoverIcon(symbol: "eye")
+                                TopbarHoverIcon(
+                                    symbol: hiddenWindowIDs.contains(item.id) ? "eye.slash" : "eye"
+                                ) {
+                                    toggleVisibilityIcon(for: item.id)
+                                }
 
                                 TopbarHoverIcon(symbol: "pencil")
 
@@ -157,6 +162,7 @@ private struct MenuBarContent: View {
         }
         .onChange(of: windowStore.items.map(\.id)) { currentIDs in
             expandedWindowIDs = expandedWindowIDs.intersection(Set(currentIDs))
+            hiddenWindowIDs = hiddenWindowIDs.intersection(Set(currentIDs))
         }
     }
 
@@ -165,6 +171,14 @@ private struct MenuBarContent: View {
             expandedWindowIDs.remove(windowID)
         } else {
             expandedWindowIDs.insert(windowID)
+        }
+    }
+
+    private func toggleVisibilityIcon(for windowID: ObjectIdentifier) {
+        if hiddenWindowIDs.contains(windowID) {
+            hiddenWindowIDs.remove(windowID)
+        } else {
+            hiddenWindowIDs.insert(windowID)
         }
     }
 }
