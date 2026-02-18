@@ -811,7 +811,15 @@ private struct WindowDragRegion: NSViewRepresentable {
 }
 
 private final class DragRegionNSView: NSView {
+    override func resetCursorRects() {
+        super.resetCursorRects()
+        discardCursorRects()
+        addCursorRect(bounds, cursor: .openHand)
+    }
+
     override func mouseDown(with event: NSEvent) {
+        NSCursor.closedHand.push()
+        defer { NSCursor.pop() }
         window?.performDrag(with: event)
     }
 }
