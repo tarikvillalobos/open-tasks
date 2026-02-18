@@ -159,10 +159,10 @@ struct ContentView: View {
                 isInputFocused = true
             }
         }
-        .onChange(of: tasks, initial: false) {
+        .task(id: tasks) {
             syncMenuBarTaskList()
         }
-        .onChange(of: hostWindowID, initial: false) {
+        .task(id: hostWindowID) {
             syncMenuBarTaskList()
         }
     }
