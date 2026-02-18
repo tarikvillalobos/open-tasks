@@ -28,6 +28,7 @@ struct ContentView: View {
     private let taskRowSpacing: CGFloat = 10
     private let emptyStateHeight: CGFloat = 120
     private let staticLayoutHeight: CGFloat = 244
+    private let taskDragType = UTType.plainText
 
     @State private var newTask = ""
     @State private var tasks: [TodoItem] = []
@@ -289,7 +290,7 @@ struct ContentView: View {
                     ForEach(tasks) { task in
                         taskRow(for: task)
                             .onDrop(
-                                of: [UTType.text],
+                                of: [taskDragType],
                                 delegate: TaskReorderDropDelegate(
                                     targetTask: task,
                                     tasks: $tasks,
@@ -304,7 +305,7 @@ struct ContentView: View {
                         ForEach(tasks) { task in
                             taskRow(for: task)
                                 .onDrop(
-                                    of: [UTType.text],
+                                    of: [taskDragType],
                                     delegate: TaskReorderDropDelegate(
                                         targetTask: task,
                                         tasks: $tasks,
@@ -320,7 +321,6 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: tasksContainerHeight, alignment: .top)
-        .onDrop(of: [UTType.text], delegate: TaskReorderContainerDropDelegate(draggedTaskID: $draggedTaskID))
         .overlay(alignment: .topTrailing) {
             if pendingUndo != nil {
                 undoFloatingButton
@@ -358,7 +358,10 @@ struct ContentView: View {
             TaskReorderHandle()
                 .onDrag {
                     draggedTaskID = task.id
-                    return NSItemProvider(object: NSString(string: task.id.uuidString))
+                    return NSItemProvider(
+                        item: task.id.uuidString as NSString,
+                        typeIdentifier: taskDragType.identifier
+                    )
                 }
                 .handCursorOnHover()
 
@@ -669,6 +672,7 @@ private struct TaskReorderHandle: View {
             dotRow
         }
         .frame(width: 14, height: 24)
+        .contentShape(Rectangle())
         .opacity(0.55)
     }
 
@@ -696,23 +700,10 @@ private struct TaskReorderDropDelegate: DropDelegate {
         guard sourceIndex != destinationIndex else { return }
 
         withAnimation(.easeInOut(duration: 0.12)) {
-            let movedTask = tasks.remove(at: sourceIndex)
-            tasks.insert(movedTask, at: destinationIndex)
+            let insertionIndex = destinationIndex > sourceIndex ? destinationIndex + 1 : destinationIndex
+            tasks.move(fromOffsets: IndexSet(integer: sourceIndex), toOffset: insertionIndex)
         }
     }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        draggedTaskID = nil
-        return true
-    }
-}
-
-private struct TaskReorderContainerDropDelegate: DropDelegate {
-    @Binding var draggedTaskID: UUID?
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
         DropProposal(operation: .move)
