@@ -187,8 +187,7 @@ private struct MenuBarContent: View {
         .onAppear {
             isTasksExpanded = true
         }
-        .onChange(of: windowStore.items.map(\.id), initial: false) {
-            let currentIDs = windowStore.items.map(\.id)
+        .onReceive(windowStore.$items.map { $0.map(\.id) }.removeDuplicates()) { currentIDs in
             expandedWindowIDs = expandedWindowIDs.intersection(Set(currentIDs))
             hiddenWindowIDs = hiddenWindowIDs.intersection(Set(currentIDs))
             if let editingWindowID, !Set(currentIDs).contains(editingWindowID) {
