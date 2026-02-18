@@ -125,8 +125,12 @@ struct ContentView: View {
                 .padding(.vertical, panelVerticalInset)
 
             VStack(spacing: 14) {
-                header
-                inputRow
+                VStack(spacing: 14) {
+                    header
+                    inputRow
+                }
+                .background(WindowDragRegion())
+
                 suggestButton
 
                 tasksSection
@@ -748,7 +752,7 @@ private struct WindowConfigurator: NSViewRepresentable {
         if window.identifier?.rawValue != "glassdo.window" {
             window.identifier = NSUserInterfaceItemIdentifier("glassdo.window")
             window.styleMask = [.borderless, .fullSizeContentView]
-            window.isMovableByWindowBackground = true
+            window.isMovableByWindowBackground = false
             window.backgroundColor = .clear
             window.isOpaque = false
             window.hasShadow = true
@@ -789,5 +793,19 @@ private struct WindowConfigurator: NSViewRepresentable {
         )
 
         Self.patchedWindowClasses.insert(classID)
+    }
+}
+
+private struct WindowDragRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        DragRegionNSView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+private final class DragRegionNSView: NSView {
+    override func mouseDown(with event: NSEvent) {
+        window?.performDrag(with: event)
     }
 }
