@@ -355,26 +355,37 @@ struct ContentView: View {
         let isExpanded = expandedTaskIDs.contains(task.id)
 
         return HStack(alignment: .center, spacing: 10) {
-            TaskReorderHandle()
-                .onDrag {
-                    draggedTaskID = task.id
-                    return NSItemProvider(
-                        item: task.id.uuidString as NSString,
-                        typeIdentifier: taskDragType.identifier
-                    )
-                }
-                .handCursorOnHover()
-
-            Button {
-                guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
-                toggleTask(at: index)
-            } label: {
-                Image(systemName: task.completed ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(task.completed ? .green : .white.opacity(0.50))
+            if task.completed {
+                TaskReorderHandle()
+                    .opacity(0.35)
+            } else {
+                TaskReorderHandle()
+                    .onDrag {
+                        draggedTaskID = task.id
+                        return NSItemProvider(
+                            item: task.id.uuidString as NSString,
+                            typeIdentifier: taskDragType.identifier
+                        )
+                    }
+                    .handCursorOnHover()
             }
-            .buttonStyle(.plain)
-            .handCursorOnHover()
+
+            if task.completed {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.green)
+            } else {
+                Button {
+                    guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
+                    toggleTask(at: index)
+                } label: {
+                    Image(systemName: "circle")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.50))
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+            }
 
             if editingTaskID == task.id {
                 TextField("", text: $editingTaskTitle)
@@ -424,13 +435,15 @@ struct ContentView: View {
                     toggleTaskExpansion(for: task.id)
                 }
 
-                TaskRowActionButton(symbol: "pencil") {
-                    startTaskEdit(for: task.id)
-                }
+                if !task.completed {
+                    TaskRowActionButton(symbol: "pencil") {
+                        startTaskEdit(for: task.id)
+                    }
 
-                TaskRowActionButton(symbol: "trash") {
-                    guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
-                    deleteTask(at: index)
+                    TaskRowActionButton(symbol: "trash") {
+                        guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
+                        deleteTask(at: index)
+                    }
                 }
             }
         }
@@ -471,14 +484,9 @@ struct ContentView: View {
 
     private func toggleTask(at index: Int) {
         guard tasks.indices.contains(index) else { return }
-
-        if tasks[index].completed {
-            tasks[index].completed = false
-            return
-        }
+        guard !tasks[index].completed else { return }
 
         var task = tasks.remove(at: index)
-        registerUndo(for: task, originalIndex: index)
         task.completed = true
         tasks.append(task)
     }
@@ -510,6 +518,7 @@ struct ContentView: View {
 
     private func startTaskEdit(for taskID: UUID) {
         guard let task = tasks.first(where: { $0.id == taskID }) else { return }
+        guard !task.completed else { return }
         editingTaskID = taskID
         editingTaskTitle = task.title
     }
@@ -519,6 +528,7 @@ struct ContentView: View {
         defer { cancelTaskEdit() }
         guard !trimmed.isEmpty else { return }
         guard let index = tasks.firstIndex(where: { $0.id == taskID }) else { return }
+        guard !tasks[index].completed else { return }
         tasks[index].title = trimmed
     }
 
@@ -529,6 +539,7 @@ struct ContentView: View {
 
     private func deleteTask(at index: Int) {
         guard tasks.indices.contains(index) else { return }
+        guard !tasks[index].completed else { return }
         let removedTask = tasks.remove(at: index)
         expandedTaskIDs.remove(removedTask.id)
 
@@ -698,6 +709,7 @@ private struct TaskReorderDropDelegate: DropDelegate {
         guard let sourceIndex = tasks.firstIndex(where: { $0.id == draggedTaskID }) else { return }
         guard let destinationIndex = tasks.firstIndex(where: { $0.id == targetTask.id }) else { return }
         guard sourceIndex != destinationIndex else { return }
+        guard !tasks[sourceIndex].completed, !tasks[destinationIndex].completed else { return }
 
         withAnimation(.easeInOut(duration: 0.12)) {
             let insertionIndex = destinationIndex > sourceIndex ? destinationIndex + 1 : destinationIndex
