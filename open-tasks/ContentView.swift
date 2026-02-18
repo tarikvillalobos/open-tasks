@@ -8,6 +8,7 @@
 import AppKit
 import ObjectiveC.runtime
 import SwiftUI
+import UniformTypeIdentifiers
 
 private struct TodoItem: Identifiable, Equatable {
     let id = UUID()
@@ -36,6 +37,7 @@ struct ContentView: View {
     @State private var editingTaskID: UUID?
     @State private var editingTaskTitle = ""
     @State private var expandedTaskIDs: Set<UUID> = []
+    @State private var draggedTaskID: UUID?
     @StateObject private var windowStore = TodoWindowStore.shared
     @FocusState private var isInputFocused: Bool
     @Environment(\.openWindow) private var openWindow
@@ -274,15 +276,31 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else if tasks.count <= maxVisibleTasks {
                 LazyVStack(spacing: taskRowSpacing) {
-                    ForEach(tasks.indices, id: \.self) { index in
-                        taskRow(for: index)
+                    ForEach(tasks) { task in
+                        taskRow(for: task)
+                            .onDrop(
+                                of: [UTType.text],
+                                delegate: TaskReorderDropDelegate(
+                                    targetTask: task,
+                                    tasks: $tasks,
+                                    draggedTaskID: $draggedTaskID
+                                )
+                            )
                     }
                 }
             } else {
                 ScrollView(showsIndicators: true) {
                     LazyVStack(spacing: taskRowSpacing) {
-                        ForEach(tasks.indices, id: \.self) { index in
-                            taskRow(for: index)
+                        ForEach(tasks) { task in
+                            taskRow(for: task)
+                                .onDrop(
+                                    of: [UTType.text],
+                                    delegate: TaskReorderDropDelegate(
+                                        targetTask: task,
+                                        tasks: $tasks,
+                                        draggedTaskID: $draggedTaskID
+                                    )
+                                )
                         }
                     }
                     .padding(.vertical, 2)
@@ -292,6 +310,7 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: tasksContainerHeight, alignment: .top)
+        .onDrop(of: [UTType.text], delegate: TaskReorderContainerDropDelegate(draggedTaskID: $draggedTaskID))
         .overlay(alignment: .topTrailing) {
             if pendingUndo != nil {
                 undoFloatingButton
@@ -322,12 +341,19 @@ struct ContentView: View {
         .handCursorOnHover()
     }
 
-    private func taskRow(for index: Int) -> some View {
-        let task = tasks[index]
+    private func taskRow(for task: TodoItem) -> some View {
         let isExpanded = expandedTaskIDs.contains(task.id)
 
         return HStack(alignment: .center, spacing: 10) {
+            TaskReorderHandle()
+                .onDrag {
+                    draggedTaskID = task.id
+                    return NSItemProvider(object: NSString(string: task.id.uuidString))
+                }
+                .handCursorOnHover()
+
             Button {
+                guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
                 toggleTask(at: index)
             } label: {
                 Image(systemName: task.completed ? "checkmark.circle.fill" : "circle")
@@ -390,6 +416,7 @@ struct ContentView: View {
                 }
 
                 TaskRowActionButton(symbol: "trash") {
+                    guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
                     deleteTask(at: index)
                 }
             }
@@ -621,6 +648,69 @@ private struct TaskRowActionButton: View {
                 NSCursor.pop()
             }
         }
+    }
+}
+
+private struct TaskReorderHandle: View {
+    var body: some View {
+        VStack(spacing: 3) {
+            dotRow
+            dotRow
+            dotRow
+        }
+        .frame(width: 14, height: 24)
+        .opacity(0.55)
+    }
+
+    private var dotRow: some View {
+        HStack(spacing: 3) {
+            Circle()
+                .fill(.white.opacity(0.28))
+                .frame(width: 3.5, height: 3.5)
+            Circle()
+                .fill(.white.opacity(0.28))
+                .frame(width: 3.5, height: 3.5)
+        }
+    }
+}
+
+private struct TaskReorderDropDelegate: DropDelegate {
+    let targetTask: TodoItem
+    @Binding var tasks: [TodoItem]
+    @Binding var draggedTaskID: UUID?
+
+    func dropEntered(info: DropInfo) {
+        guard let draggedTaskID, draggedTaskID != targetTask.id else { return }
+        guard let sourceIndex = tasks.firstIndex(where: { $0.id == draggedTaskID }) else { return }
+        guard let destinationIndex = tasks.firstIndex(where: { $0.id == targetTask.id }) else { return }
+        guard sourceIndex != destinationIndex else { return }
+
+        withAnimation(.easeInOut(duration: 0.12)) {
+            let movedTask = tasks.remove(at: sourceIndex)
+            tasks.insert(movedTask, at: destinationIndex)
+        }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedTaskID = nil
+        return true
+    }
+}
+
+private struct TaskReorderContainerDropDelegate: DropDelegate {
+    @Binding var draggedTaskID: UUID?
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedTaskID = nil
+        return true
     }
 }
 
