@@ -125,11 +125,8 @@ struct ContentView: View {
                 .padding(.vertical, panelVerticalInset)
 
             VStack(spacing: 14) {
-                VStack(spacing: 14) {
-                    header
-                    inputRow
-                }
-                .background(WindowDragRegion())
+                header
+                inputRow
 
                 suggestButton
 
@@ -143,6 +140,11 @@ struct ContentView: View {
             .padding(.bottom, 14)
             .padding(.horizontal, panelHorizontalInset)
             .padding(.vertical, panelVerticalInset)
+            .overlay(alignment: .top) {
+                WindowDragRegion()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 12)
+            }
         }
         .frame(width: panelWidth, height: panelHeight)
         .padding(.horizontal, windowEdgePaddingX)
@@ -175,12 +177,16 @@ struct ContentView: View {
 
     private var header: some View {
         HStack(alignment: .center) {
-            Text(panelTitle)
-                .font(.system(size: 19, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.97))
-                .frame(height: 36, alignment: .center)
+            HStack(spacing: 0) {
+                Text(panelTitle)
+                    .font(.system(size: 19, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.97))
+                    .frame(height: 36, alignment: .center)
 
-            Spacer()
+                Spacer()
+            }
+            .frame(height: 36)
+            .background(WindowDragRegion())
 
             HStack(spacing: 8) {
                 Button(action: {}) {
