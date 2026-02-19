@@ -221,35 +221,35 @@ struct ContentView: View {
                     .foregroundColor(Color.white.opacity(0.70))
             )
             .textFieldStyle(.plain)
-            .font(.system(size: 21, weight: .medium, design: .rounded))
+            .font(.system(size: 18, weight: .medium, design: .rounded))
             .foregroundStyle(.white.opacity(0.92))
-            .padding(.leading, 16)
+            .padding(.leading, 14)
             .focused($isInputFocused)
             .onSubmit(addTask)
 
             Button(action: addTask) {
                 Image(systemName: "plus")
-                    .font(.system(size: 22, weight: .regular))
+                    .font(.system(size: 18, weight: .regular))
                     .foregroundStyle(.white.opacity(0.9))
-                    .frame(width: 46, height: 46)
+                    .frame(width: 40, height: 40)
                     .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(.white.opacity(0.06))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .stroke(.white.opacity(0.14), lineWidth: 1)
                             )
                     )
             }
             .buttonStyle(.plain)
-            .padding(.trailing, 5)
+            .padding(.trailing, 4)
         }
-        .frame(height: 56)
+        .frame(height: 50)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(Color.white.opacity(0.17))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .stroke(.white.opacity(0.20), lineWidth: 1.2)
                 )
         )
