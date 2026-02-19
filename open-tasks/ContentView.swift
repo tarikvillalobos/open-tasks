@@ -194,7 +194,7 @@ struct ContentView: View {
                     HeaderIcon(symbol: "lightbulb", isActive: true)
                 }
                 .buttonStyle(.plain)
-                .handCursorOnHover()
+                .disabled(true)
 
                 Button(action: duplicateTodoWindow) {
                     HeaderIcon(symbol: "doc.on.doc")
