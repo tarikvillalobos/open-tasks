@@ -273,6 +273,7 @@ struct ContentView: View {
                     )
             }
             .buttonStyle(.plain)
+            .disabled(true)
 
             Spacer()
         }
