@@ -213,7 +213,7 @@ struct ContentView: View {
     }
 
     private var inputRow: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             TextField(
                 "",
                 text: $newTask,
@@ -221,35 +221,35 @@ struct ContentView: View {
                     .foregroundColor(Color.white.opacity(0.70))
             )
             .textFieldStyle(.plain)
-            .font(.system(size: 18, weight: .medium, design: .rounded))
+            .font(.system(size: 16, weight: .medium, design: .rounded))
             .foregroundStyle(.white.opacity(0.92))
-            .padding(.leading, 14)
+            .padding(.leading, 12)
             .focused($isInputFocused)
             .onSubmit(addTask)
 
             Button(action: addTask) {
                 Image(systemName: "plus")
-                    .font(.system(size: 18, weight: .regular))
+                    .font(.system(size: 16, weight: .regular))
                     .foregroundStyle(.white.opacity(0.9))
-                    .frame(width: 40, height: 40)
+                    .frame(width: 34, height: 34)
                     .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .fill(.white.opacity(0.06))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .stroke(.white.opacity(0.14), lineWidth: 1)
                             )
                     )
             }
             .buttonStyle(.plain)
-            .padding(.trailing, 4)
+            .padding(.trailing, 3)
         }
-        .frame(height: 50)
+        .frame(height: 44)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color.white.opacity(0.17))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .stroke(.white.opacity(0.20), lineWidth: 1.2)
                 )
         )
