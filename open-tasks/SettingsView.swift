@@ -3,6 +3,8 @@
 //  open-tasks
 //
 
+import AppKit
+import ObjectiveC.runtime
 import SwiftUI
 
 struct SettingsView: View {
@@ -10,7 +12,7 @@ struct SettingsView: View {
         case general = "Geral"
         case appearance = "Aparência"
         case codexCLI = "Codex CLI"
-        case shortcuts = "Atalhos do Teclado"
+        case shortcuts = "Atalhos"
 
         var id: String { rawValue }
 
@@ -45,7 +47,7 @@ struct SettingsView: View {
     }
 
     private enum ScrollbarBehavior: String, CaseIterable, Identifiable {
-        case automatic = "Automaticamente com base no mouse ou trackpad"
+        case automatic = "Automático"
         case whileScrolling = "Ao rolar"
         case always = "Sempre"
 
@@ -64,8 +66,16 @@ struct SettingsView: View {
         let items: [ShortcutItem]
     }
 
+    private let panelWidth: CGFloat = 760
+    private let panelHeight: CGFloat = 640
+    private let panelHorizontalInset: CGFloat = 2
+    private let panelVerticalInset: CGFloat = 6
+    private let windowEdgePaddingX: CGFloat = 10
+    private let windowEdgePaddingY: CGFloat = 12
+
     @State private var selectedTab: SettingsTab = .general
     @State private var searchText = ""
+    @State private var hostWindow: NSWindow?
 
     @State private var launchAtLogin = false
     @State private var reopenPreviousWindows = true
@@ -106,12 +116,12 @@ struct SettingsView: View {
                 title: "GERAL",
                 items: [
                     ShortcutItem(name: "Nova Tarefa", keys: ["↩"]),
-                    ShortcutItem(name: "Nova Ideia", keys: ["⌘", "I"]),
-                    ShortcutItem(name: "Configurações", keys: ["⌘", ","])
+                    ShortcutItem(name: "Configurações", keys: ["⌘", ","]),
+                    ShortcutItem(name: "Buscar", keys: ["⌘", "F"])
                 ]
             ),
             ShortcutGroup(
-                title: "GERENCIAMENTO DE JANELAS",
+                title: "JANELA",
                 items: [
                     ShortcutItem(name: "Duplicar Janela", keys: ["⌘", "D"]),
                     ShortcutItem(name: "Fechar Janela", keys: ["⌘", "W"]),
@@ -119,10 +129,10 @@ struct SettingsView: View {
                 ]
             ),
             ShortcutGroup(
-                title: "EDIÇÃO",
+                title: "TAREFAS",
                 items: [
                     ShortcutItem(name: "Editar Tarefa", keys: ["⌘", "E"]),
-                    ShortcutItem(name: "Marcar como Concluída", keys: ["⌘", "↩"]),
+                    ShortcutItem(name: "Concluir Tarefa", keys: ["⌘", "↩"]),
                     ShortcutItem(name: "Excluir Tarefa", keys: ["⌘", "⌫"])
                 ]
             )
@@ -130,206 +140,241 @@ struct SettingsView: View {
     }
 
     private var visibleTabs: [SettingsTab] {
-        guard !searchText.isEmpty else { return SettingsTab.allCases }
-        return SettingsTab.allCases.filter { $0.rawValue.localizedCaseInsensitiveContains(searchText) }
+        guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return SettingsTab.allCases
+        }
+        return SettingsTab.allCases.filter { tab in
+            tab.rawValue.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    private var activeTab: SettingsTab {
+        if visibleTabs.contains(selectedTab) {
+            return selectedTab
+        }
+        return visibleTabs.first ?? .general
     }
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.23, green: 0.17, blue: 0.34),
-                    Color(red: 0.16, green: 0.16, blue: 0.42),
-                    Color(red: 0.21, green: 0.13, blue: 0.36)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            HStack(spacing: 0) {
-                sidebar
-
-                Rectangle()
-                    .fill(.white.opacity(0.12))
-                    .frame(width: 1)
-
-                detailPanel
-            }
-            .background(Color.black.opacity(0.10))
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(.white.opacity(0.16), lineWidth: 1)
-            )
-            .padding(18)
-        }
-        .frame(minWidth: 1240, minHeight: 780)
-    }
-
-    private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.45))
-
-                TextField("Buscar Ajustes", text: $searchText)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.90))
-            }
-            .padding(.horizontal, 14)
-            .frame(height: 46)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(.white.opacity(0.06))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(.white.opacity(0.13), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(.regularMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .fill(Color(red: 0.12, green: 0.13, blue: 0.15).opacity(0.46))
+                )
+                .overlay(alignment: .topLeading) {
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.45, green: 0.39, blue: 0.36).opacity(0.20),
+                            Color(red: 0.35, green: 0.30, blue: 0.36).opacity(0.10),
+                            .clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
-            )
-
-            VStack(spacing: 8) {
-                if visibleTabs.isEmpty {
-                    Text("Nenhum ajuste encontrado")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.52))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                } else {
-                    ForEach(visibleTabs) { tab in
-                        tabButton(tab)
-                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                 }
-            }
-
-            Spacer(minLength: 12)
-
-            Rectangle()
-                .fill(.white.opacity(0.11))
-                .frame(height: 1)
-
-            HStack(spacing: 14) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(Color(red: 0.32, green: 0.41, blue: 0.90))
-                    .frame(width: 54, height: 54)
-                    .background(
-                        Circle()
-                            .fill(Color(red: 0.18, green: 0.25, blue: 0.45).opacity(0.55))
-                            .overlay(
-                                Circle()
-                                    .stroke(.white.opacity(0.12), lineWidth: 1)
-                            )
+                .overlay(alignment: .bottomLeading) {
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.12, green: 0.36, blue: 0.52).opacity(0.28),
+                            .clear
+                        ],
+                        startPoint: .bottomLeading,
+                        endPoint: .topTrailing
                     )
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Usuário Glass")
-                        .font(.system(size: 33, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.90))
-
-                    Text("Apple Account")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.62))
+                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                 }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .strokeBorder(.white.opacity(0.20), lineWidth: 1)
+                )
+                .padding(.horizontal, panelHorizontalInset)
+                .padding(.vertical, panelVerticalInset)
+
+            VStack(spacing: 14) {
+                header
+                searchRow
+                tabRow
+                contentScroll
+                footer
             }
-            .padding(.top, 8)
+            .padding(.horizontal, 18)
+            .padding(.top, 20)
+            .padding(.bottom, 14)
+            .padding(.horizontal, panelHorizontalInset)
+            .padding(.vertical, panelVerticalInset)
+            .overlay(alignment: .top) {
+                SettingsWindowDragRegion()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 12)
+            }
         }
-        .padding(.horizontal, 22)
-        .padding(.top, 24)
-        .padding(.bottom, 24)
-        .frame(width: 398)
+        .frame(width: panelWidth, height: panelHeight)
+        .padding(.horizontal, windowEdgePaddingX)
+        .padding(.vertical, windowEdgePaddingY)
         .background(
-            LinearGradient(
-                colors: [
-                    Color(red: 0.18, green: 0.18, blue: 0.30),
-                    Color(red: 0.11, green: 0.19, blue: 0.27)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            SettingsWindowConfigurator(
+                targetSize: CGSize(
+                    width: panelWidth + (windowEdgePaddingX * 2),
+                    height: panelHeight + (windowEdgePaddingY * 2)
+                )
+            ) { window in
+                if hostWindow !== window {
+                    hostWindow = window
+                }
+            }
         )
     }
 
-    private func tabButton(_ tab: SettingsTab) -> some View {
-        Button {
-            selectedTab = tab
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 22, weight: .medium))
-                    .frame(width: 32)
+    private var header: some View {
+        HStack(alignment: .center) {
+            HStack(spacing: 0) {
+                Text("Config")
+                    .font(.system(size: 19, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.97))
+                    .frame(height: 36, alignment: .center)
 
-                Text(tab.rawValue)
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-
-                Spacer(minLength: 0)
-            }
-            .foregroundStyle(.white.opacity(selectedTab == tab ? 0.95 : 0.72))
-            .padding(.horizontal, 14)
-            .padding(.vertical, 13)
-            .background(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(selectedTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93) : .clear)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .stroke(selectedTab == tab ? .white.opacity(0.14) : .clear, lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var detailPanel: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(selectedTab.rawValue)
-                    .font(.system(size: 38, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.95))
                 Spacer()
             }
-            .padding(.horizontal, 30)
-            .padding(.vertical, 22)
+            .frame(height: 36)
+            .background(SettingsWindowDragRegion())
 
-            Rectangle()
-                .fill(.white.opacity(0.12))
-                .frame(height: 1)
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 34) {
-                    switch selectedTab {
-                    case .general:
-                        generalContent
-                    case .appearance:
-                        appearanceContent
-                    case .codexCLI:
-                        codexContent
-                    case .shortcuts:
-                        shortcutsContent
-                    }
+            HStack(spacing: 8) {
+                Button(action: {}) {
+                    SettingsHeaderIcon(symbol: "gearshape", isActive: true)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 30)
-                .padding(.top, 26)
-                .padding(.bottom, 34)
+                .buttonStyle(.plain)
+                .disabled(true)
+
+                SettingsHeaderIcon(symbol: activeTab.icon)
+
+                SettingsHeaderIcon(symbol: "ellipsis")
+
+                Button(action: closeSettingsWindow) {
+                    SettingsHeaderIcon(symbol: "xmark")
+                }
+                .buttonStyle(.plain)
             }
         }
-        .background(
-            LinearGradient(
-                colors: [
-                    Color(red: 0.25, green: 0.24, blue: 0.39),
-                    Color(red: 0.18, green: 0.15, blue: 0.37)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+    }
+
+    private var searchRow: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.56))
+                .frame(width: 20)
+
+            TextField(
+                "",
+                text: $searchText,
+                prompt: Text("Buscar ajustes...").foregroundColor(.white.opacity(0.70))
             )
+            .textFieldStyle(.plain)
+            .font(.system(size: 16, weight: .medium, design: .rounded))
+            .foregroundStyle(.white.opacity(0.92))
+
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white.opacity(0.45))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 44)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.17))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(.white.opacity(0.20), lineWidth: 1.2)
+                )
         )
+    }
+
+    private var tabRow: some View {
+        Group {
+            if visibleTabs.isEmpty {
+                EmptySettingsStateView()
+            } else {
+                HStack(spacing: 8) {
+                    ForEach(visibleTabs) { tab in
+                        Button {
+                            selectedTab = tab
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: tab.icon)
+                                    .font(.system(size: 13, weight: .semibold))
+                                Text(tab.rawValue)
+                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            }
+                            .foregroundStyle(.white.opacity(activeTab == tab ? 0.95 : 0.72))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 9)
+                            .background(
+                                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                    .fill(activeTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.40) : .black.opacity(0.15))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                            .stroke(.white.opacity(activeTab == tab ? 0.22 : 0.08), lineWidth: 1)
+                                    )
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+    }
+
+    private var contentScroll: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                switch activeTab {
+                case .general:
+                    generalContent
+                case .appearance:
+                    appearanceContent
+                case .codexCLI:
+                    codexContent
+                case .shortcuts:
+                    shortcutsContent
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var footer: some View {
+        VStack(spacing: 8) {
+            Rectangle()
+                .fill(.white.opacity(0.14))
+                .frame(height: 1)
+
+            HStack {
+                Text("Configuração ativa")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.60))
+
+                Spacer()
+
+                Text(activeTab.rawValue)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.60))
+            }
+        }
     }
 
     private var generalContent: some View {
-        VStack(alignment: .leading, spacing: 30) {
+        VStack(alignment: .leading, spacing: 12) {
             sectionTitle("INICIALIZAÇÃO")
             settingsCard {
                 toggleRow(icon: "power", title: "Iniciar ao ligar o Mac", isOn: $launchAtLogin)
@@ -344,16 +389,11 @@ struct SettingsView: View {
                 toggleRow(title: "Feedback tátil (Haptics)", isOn: $hapticsEnabled)
             }
 
-            sectionTitle("IDIOMA E REGIÃO")
+            sectionTitle("IDIOMA")
             settingsCard {
-                HStack(spacing: 14) {
-                    Image(systemName: "globe")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.62))
-                        .frame(width: 34)
-
+                HStack(spacing: 12) {
                     Text("Idioma do App")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white.opacity(0.88))
 
                     Spacer()
@@ -365,57 +405,51 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(width: 270)
+                    .frame(width: 220)
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
             }
 
             sectionTitle("DADOS")
             settingsCard {
-                HStack {
+                HStack(spacing: 10) {
                     Text("Armazenamento Local")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white.opacity(0.88))
 
                     Spacer()
 
                     Text("2.4 GB")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.66))
-
-                    Button("Limpar") {}
-                        .buttonStyle(.bordered)
-                        .tint(.red.opacity(0.42))
-                        .controlSize(.regular)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.62))
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
             }
         }
     }
 
     private var appearanceContent: some View {
-        VStack(alignment: .leading, spacing: 30) {
-            sectionTitle("APARÊNCIA")
-
-            HStack(spacing: 18) {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle("TEMA")
+            HStack(spacing: 10) {
                 ForEach(ThemeMode.allCases) { mode in
                     Button {
                         selectedTheme = mode
                     } label: {
-                        VStack(spacing: 12) {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        VStack(spacing: 8) {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .fill(themePreviewBackground(for: mode))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(mode == selectedTheme ? Color(red: 0.44, green: 0.45, blue: 0.98) : .white.opacity(0.18), lineWidth: mode == selectedTheme ? 3 : 1)
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(mode == selectedTheme ? Color(red: 0.44, green: 0.45, blue: 0.98) : .white.opacity(0.16), lineWidth: mode == selectedTheme ? 2 : 1)
                                 )
-                                .frame(width: 170, height: 112)
+                                .frame(height: 76)
                                 .overlay(themePreviewContent(for: mode))
 
                             Text(mode.rawValue)
-                                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.white.opacity(0.78))
                         }
                     }
@@ -424,53 +458,51 @@ struct SettingsView: View {
             }
 
             sectionTitle("COR DE DESTAQUE")
-            HStack(spacing: 16) {
+            HStack(spacing: 10) {
                 ForEach(accentPalette.indices, id: \.self) { index in
                     Button {
                         selectedAccentColorIndex = index
                     } label: {
                         Circle()
                             .fill(accentPalette[index])
-                            .frame(width: 36, height: 36)
+                            .frame(width: 26, height: 26)
                             .overlay(
                                 Circle()
-                                    .stroke(.white.opacity(index == selectedAccentColorIndex ? 0.95 : 0), lineWidth: 3)
+                                    .stroke(.white.opacity(index == selectedAccentColorIndex ? 0.95 : 0), lineWidth: 2)
                             )
-                            .shadow(color: .black.opacity(0.25), radius: 8, y: 2)
                     }
                     .buttonStyle(.plain)
                 }
             }
 
             sectionTitle("TAMANHO DOS ÍCONES")
-            HStack(spacing: 0) {
+            HStack(spacing: 8) {
                 ForEach(IconSizeOption.allCases) { size in
                     Button {
                         selectedIconSize = size
                     } label: {
                         Text(size.rawValue)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white.opacity(selectedIconSize == size ? 0.94 : 0.62))
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white.opacity(selectedIconSize == size ? 0.95 : 0.62))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
+                            .padding(.vertical, 10)
                             .background(
-                                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .fill(selectedIconSize == size ? .white.opacity(0.20) : .clear)
                             )
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(8)
+            .padding(6)
             .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(.black.opacity(0.25))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .stroke(.white.opacity(0.08), lineWidth: 1)
                     )
             )
-            .frame(maxWidth: 700)
 
             sectionTitle("BARRAS DE ROLAGEM")
             settingsCard {
@@ -479,25 +511,24 @@ struct SettingsView: View {
                     Button {
                         selectedScrollbarBehavior = behavior
                     } label: {
-                        HStack(spacing: 14) {
+                        HStack(spacing: 12) {
                             Circle()
-                                .stroke(.white.opacity(0.58), lineWidth: 2)
-                                .frame(width: 28, height: 28)
+                                .stroke(.white.opacity(0.58), lineWidth: 1.6)
+                                .frame(width: 20, height: 20)
                                 .overlay(
                                     Circle()
                                         .fill(Color(red: 0.39, green: 0.44, blue: 0.99))
-                                        .frame(width: 16, height: 16)
+                                        .frame(width: 10, height: 10)
                                         .opacity(selectedScrollbarBehavior == behavior ? 1 : 0)
                                 )
 
                             Text(behavior.rawValue)
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.white.opacity(0.86))
-
                             Spacer()
                         }
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                     }
                     .buttonStyle(.plain)
 
@@ -510,50 +541,24 @@ struct SettingsView: View {
     }
 
     private var codexContent: some View {
-        VStack(alignment: .leading, spacing: 30) {
-            sectionTitle("CONEXÃO DO TERMINAL")
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle("CONEXÃO")
             settingsCard {
-                HStack {
-                    Text("Caminho do Executável")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.86))
-
-                    Spacer()
-
-                    Text(executablePath)
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.56))
-                        .lineLimit(1)
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
-
+                rowValue(title: "Caminho do Executável", value: executablePath)
                 rowDivider
-
-                HStack {
-                    Text("Chave de API (Opcional)")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.86))
-
-                    Spacer()
-
-                    Text(apiKeyMasked)
-                        .font(.system(size: 19, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.58))
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
+                rowValue(title: "Chave de API", value: apiKeyMasked)
             }
 
             Text("O caminho deve apontar para o binário instalado via Homebrew ou npm.")
-                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(.white.opacity(0.42))
+                .padding(.horizontal, 2)
 
-            sectionTitle("PARÂMETROS DE INFERÊNCIA")
+            sectionTitle("INFERÊNCIA")
             settingsCard {
                 HStack {
                     Text("Modelo Principal")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white.opacity(0.88))
 
                     Spacer()
@@ -565,30 +570,30 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(width: 240)
+                    .frame(width: 210)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 22)
-                .padding(.bottom, 12)
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+                .padding(.bottom, 10)
 
-                HStack(spacing: 14) {
+                HStack(spacing: 10) {
                     Text("Temperatura")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white.opacity(0.88))
 
                     Slider(value: $temperature, in: 0...1, step: 0.1)
                         .tint(Color(red: 0.39, green: 0.44, blue: 0.99))
 
                     Text(String(format: "%.1f", temperature))
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
                         .foregroundStyle(.white.opacity(0.72))
-                        .frame(width: 42)
+                        .frame(width: 32)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 20)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 14)
             }
 
-            sectionTitle("INTEGRAÇÃO & SINCRONIZAÇÃO")
+            sectionTitle("INTEGRAÇÃO")
             settingsCard {
                 toggleRow(title: "Sugestões Inteligentes no Terminal", isOn: $terminalSuggestionsEnabled)
                 rowDivider
@@ -600,28 +605,26 @@ struct SettingsView: View {
     }
 
     private var shortcutsContent: some View {
-        VStack(alignment: .leading, spacing: 30) {
+        VStack(alignment: .leading, spacing: 12) {
             ForEach(shortcutGroups) { group in
-                VStack(alignment: .leading, spacing: 16) {
-                    sectionTitle(group.title)
-                    settingsCard {
-                        ForEach(group.items.indices, id: \.self) { index in
-                            let item = group.items[index]
-                            HStack {
-                                Text(item.name)
-                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(.white.opacity(0.88))
+                sectionTitle(group.title)
+                settingsCard {
+                    ForEach(group.items.indices, id: \.self) { index in
+                        let item = group.items[index]
+                        HStack {
+                            Text(item.name)
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.white.opacity(0.88))
 
-                                Spacer()
+                            Spacer()
 
-                                ShortcutKeysView(keys: item.keys)
-                            }
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 18)
+                            ShortcutKeysView(keys: item.keys)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 13)
 
-                            if index < group.items.count - 1 {
-                                rowDivider
-                            }
+                        if index < group.items.count - 1 {
+                            rowDivider
                         }
                     }
                 }
@@ -629,24 +632,42 @@ struct SettingsView: View {
         }
     }
 
+    private func rowValue(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.86))
+
+            Spacer()
+
+            Text(value)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.58))
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 13, weight: .bold, design: .rounded))
+            .font(.system(size: 12, weight: .bold, design: .rounded))
             .foregroundStyle(.white.opacity(0.40))
-            .tracking(0.8)
+            .tracking(0.7)
+            .padding(.top, 2)
     }
 
     private func toggleRow(icon: String? = nil, title: String, isOn: Binding<Bool>) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             if let icon {
                 Image(systemName: icon)
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(.white.opacity(0.58))
-                    .frame(width: 34)
+                    .frame(width: 20)
             }
 
             Text(title)
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white.opacity(0.88))
 
             Spacer()
@@ -656,8 +677,8 @@ struct SettingsView: View {
                 .toggleStyle(.switch)
                 .tint(Color(red: 0.39, green: 0.44, blue: 0.99))
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 18)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
     }
 
     private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -665,32 +686,32 @@ struct SettingsView: View {
             content()
         }
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.white.opacity(0.05))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.black.opacity(0.22))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(.white.opacity(0.08), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(.white.opacity(0.10), lineWidth: 1)
                 )
         )
     }
 
     private var rowDivider: some View {
         Rectangle()
-            .fill(.white.opacity(0.08))
+            .fill(.white.opacity(0.10))
             .frame(height: 1)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 12)
     }
 
     private func themePreviewBackground(for mode: ThemeMode) -> AnyShapeStyle {
         switch mode {
         case .light:
-            return AnyShapeStyle(Color.white.opacity(0.86))
+            return AnyShapeStyle(Color.white.opacity(0.90))
         case .dark:
-            return AnyShapeStyle(Color.black.opacity(0.72))
+            return AnyShapeStyle(Color.black.opacity(0.76))
         case .automatic:
             return AnyShapeStyle(
                 LinearGradient(
-                    colors: [.white.opacity(0.84), .black.opacity(0.78)],
+                    colors: [.white.opacity(0.84), .black.opacity(0.80)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -702,29 +723,29 @@ struct SettingsView: View {
     private func themePreviewContent(for mode: ThemeMode) -> some View {
         switch mode {
         case .light:
-            VStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+            VStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .fill(.black.opacity(0.10))
-                    .frame(width: 120, height: 18)
+                    .frame(width: 92, height: 12)
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .fill(.black.opacity(0.08))
-                    .frame(width: 90, height: 12)
+                    .frame(width: 70, height: 8)
             }
         case .dark:
-            VStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+            VStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .fill(.white.opacity(0.12))
-                    .frame(width: 120, height: 18)
+                    .frame(width: 92, height: 12)
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .fill(.white.opacity(0.10))
-                    .frame(width: 90, height: 12)
+                    .frame(width: 70, height: 8)
             }
         case .automatic:
             Text("Auto")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.88))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.90))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
                 .background(
                     Capsule()
                         .fill(.white.opacity(0.14))
@@ -735,29 +756,175 @@ struct SettingsView: View {
                 )
         }
     }
+
+    private func closeSettingsWindow() {
+        hostWindow?.close()
+    }
+}
+
+private struct SettingsHeaderIcon: View {
+    let symbol: String
+    var isActive = false
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundStyle(.white.opacity(isActive ? 0.95 : 0.72))
+            .frame(width: 42, height: 42)
+            .background(
+                Circle()
+                    .fill(isActive ? Color(red: 0.42, green: 0.41, blue: 0.80).opacity(0.75) : .white.opacity(0.06))
+                    .overlay(
+                        Circle()
+                            .stroke(.white.opacity(0.14), lineWidth: 1)
+                    )
+            )
+    }
 }
 
 private struct ShortcutKeysView: View {
     let keys: [String]
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             ForEach(keys, id: \.self) { key in
                 Text(key)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.92))
-                    .frame(minWidth: 36)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .frame(minWidth: 26)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
                     .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .fill(.white.opacity(0.10))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
                                     .stroke(.white.opacity(0.12), lineWidth: 1)
                             )
                     )
             }
         }
+    }
+}
+
+private struct EmptySettingsStateView: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.52))
+            Text("Nenhum ajuste encontrado")
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.52))
+        }
+        .frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
+        .padding(.horizontal, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(.black.opacity(0.18))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(.white.opacity(0.08), lineWidth: 1)
+                )
+        )
+    }
+}
+
+private struct SettingsWindowConfigurator: NSViewRepresentable {
+    let targetSize: CGSize
+    let onResolve: (NSWindow) -> Void
+    private static var patchedWindowClasses: Set<ObjectIdentifier> = []
+
+    init(targetSize: CGSize, onResolve: @escaping (NSWindow) -> Void = { _ in }) {
+        self.targetSize = targetSize
+        self.onResolve = onResolve
+    }
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView(frame: .zero)
+        DispatchQueue.main.async {
+            guard let window = view.window else { return }
+            configure(window)
+            onResolve(window)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            guard let window = nsView.window else { return }
+            configure(window)
+            onResolve(window)
+        }
+    }
+
+    private func configure(_ window: NSWindow) {
+        ensureWindowCanBecomeKey(window)
+
+        if window.identifier?.rawValue != "glassdo.settings.window" {
+            window.identifier = NSUserInterfaceItemIdentifier("glassdo.settings.window")
+            window.styleMask = [.borderless, .fullSizeContentView]
+            window.isMovableByWindowBackground = false
+            window.backgroundColor = .clear
+            window.isOpaque = false
+            window.hasShadow = true
+            window.level = .floating
+            window.collectionBehavior = [.fullScreenAuxiliary]
+            window.standardWindowButton(.closeButton)?.isHidden = true
+            window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+            window.standardWindowButton(.zoomButton)?.isHidden = true
+        }
+
+        window.minSize = NSSize(width: 620, height: 520)
+        let desiredSize = NSSize(width: targetSize.width, height: targetSize.height)
+        if window.frame.size != desiredSize {
+            window.setContentSize(desiredSize)
+        }
+    }
+
+    private func ensureWindowCanBecomeKey(_ window: NSWindow) {
+        guard let windowClass = object_getClass(window) else { return }
+        let classID = ObjectIdentifier(windowClass)
+        guard !Self.patchedWindowClasses.contains(classID) else { return }
+
+        let canBecomeKey: @convention(block) (AnyObject) -> Bool = { _ in true }
+        let canBecomeMain: @convention(block) (AnyObject) -> Bool = { _ in true }
+
+        class_addMethod(
+            windowClass,
+            #selector(getter: NSWindow.canBecomeKey),
+            imp_implementationWithBlock(canBecomeKey),
+            "B@:"
+        )
+        class_addMethod(
+            windowClass,
+            #selector(getter: NSWindow.canBecomeMain),
+            imp_implementationWithBlock(canBecomeMain),
+            "B@:"
+        )
+
+        Self.patchedWindowClasses.insert(classID)
+    }
+}
+
+private struct SettingsWindowDragRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        SettingsDragRegionNSView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+private final class SettingsDragRegionNSView: NSView {
+    override func resetCursorRects() {
+        super.resetCursorRects()
+        discardCursorRects()
+        addCursorRect(bounds, cursor: .openHand)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        NSCursor.closedHand.push()
+        defer { NSCursor.pop() }
+        window?.performDrag(with: event)
     }
 }

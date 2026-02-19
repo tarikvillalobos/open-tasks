@@ -23,7 +23,8 @@ struct open_tasksApp: App {
         Window("Config", id: "config-window") {
             SettingsView()
         }
-        .defaultSize(width: 1360, height: 900)
+        .windowStyle(.plain)
+        .windowResizability(.contentSize)
 
         MenuBarExtra("OpenTasks", systemImage: "checklist") {
             MenuBarContent()
