@@ -202,6 +202,12 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .handCursorOnHover()
 
+                Button(action: openSettingsWindow) {
+                    HeaderIcon(symbol: "gearshape")
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+
                 HeaderIcon(symbol: "ellipsis")
                 Button(action: closeTodoWindow) {
                     HeaderIcon(symbol: "xmark")
@@ -597,6 +603,11 @@ struct ContentView: View {
     private func duplicateTodoWindow() {
         TodoWindowStore.shared.recordExplicitOpenRequest()
         openWindow(id: "todo-window")
+    }
+
+    private func openSettingsWindow() {
+        openWindow(id: "config-window")
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func syncMenuBarTaskList() {

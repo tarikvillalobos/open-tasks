@@ -195,9 +195,7 @@ struct SettingsView: View {
 
             VStack(spacing: 14) {
                 header
-                searchRow
-                tabRow
-                contentScroll
+                settingsWorkspace
                 footer
             }
             .padding(.horizontal, 18)
@@ -226,6 +224,20 @@ struct SettingsView: View {
                 }
             }
         )
+    }
+
+    private var settingsWorkspace: some View {
+        HStack(alignment: .top, spacing: 14) {
+            sidebar
+
+            Rectangle()
+                .fill(.white.opacity(0.10))
+                .frame(width: 1)
+                .padding(.vertical, 8)
+
+            contentScroll
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var header: some View {
@@ -299,40 +311,64 @@ struct SettingsView: View {
         )
     }
 
-    private var tabRow: some View {
+    private var sidebar: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            searchRow
+            sidebarTabs
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .frame(width: 220)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.black.opacity(0.18))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(.white.opacity(0.10), lineWidth: 1)
+                )
+        )
+    }
+
+    private var sidebarTabs: some View {
         Group {
             if visibleTabs.isEmpty {
                 EmptySettingsStateView()
             } else {
-                HStack(spacing: 8) {
+                VStack(spacing: 8) {
                     ForEach(visibleTabs) { tab in
-                        Button {
-                            selectedTab = tab
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: tab.icon)
-                                    .font(.system(size: 13, weight: .semibold))
-                                Text(tab.rawValue)
-                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                            }
-                            .foregroundStyle(.white.opacity(activeTab == tab ? 0.95 : 0.72))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 9)
-                            .background(
-                                RoundedRectangle(cornerRadius: 11, style: .continuous)
-                                    .fill(activeTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.40) : .black.opacity(0.15))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 11, style: .continuous)
-                                            .stroke(.white.opacity(activeTab == tab ? 0.22 : 0.08), lineWidth: 1)
-                                    )
-                            )
-                        }
-                        .buttonStyle(.plain)
+                        sidebarTabButton(tab)
                     }
-                    Spacer(minLength: 0)
                 }
             }
         }
+    }
+
+    private func sidebarTabButton(_ tab: SettingsTab) -> some View {
+        Button {
+            selectedTab = tab
+        } label: {
+            HStack(spacing: 9) {
+                Image(systemName: tab.icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .frame(width: 16)
+                Text(tab.rawValue)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(.white.opacity(activeTab == tab ? 0.95 : 0.72))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    .fill(activeTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.40) : .black.opacity(0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .stroke(.white.opacity(activeTab == tab ? 0.22 : 0.08), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var contentScroll: some View {
@@ -350,7 +386,10 @@ struct SettingsView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 2)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var footer: some View {
