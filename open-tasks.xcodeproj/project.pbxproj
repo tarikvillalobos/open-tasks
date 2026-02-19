@@ -79,12 +79,12 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
-					TargetAttributes = {
-						2B5ADE1F2F43B73F00528793 = {
-							CreatedOnToolsVersion = 26.2;
-						};
+				TargetAttributes = {
+					2B5ADE1F2F43B73F00528793 = {
+						CreatedOnToolsVersion = 26.2;
 					};
 				};
+			};
 			buildConfigurationList = 2B5ADE1B2F43B73F00528793 /* Build configuration list for PBXProject "open-tasks" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -97,11 +97,11 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2B5ADE212F43B73F00528793 /* Products */;
 			projectDirPath = "";
-				projectRoot = "";
-				targets = (
-					2B5ADE1F2F43B73F00528793 /* open-tasks */,
-				);
-			};
+			projectRoot = "";
+			targets = (
+				2B5ADE1F2F43B73F00528793 /* open-tasks */,
+			);
+		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */

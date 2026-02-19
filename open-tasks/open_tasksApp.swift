@@ -20,6 +20,11 @@ struct open_tasksApp: App {
         .windowStyle(.plain)
         .windowResizability(.contentSize)
 
+        Window("Config", id: "config-window") {
+            SettingsView()
+        }
+        .defaultSize(width: 1360, height: 900)
+
         MenuBarExtra("OpenTasks", systemImage: "checklist") {
             MenuBarContent()
         }
@@ -165,7 +170,10 @@ private struct MenuBarContent: View {
 
             Divider()
 
-            Button(action: {}) {
+            Button {
+                openWindow(id: "config-window")
+                NSApp.activate(ignoringOtherApps: true)
+            } label: {
                 Label("Config", systemImage: "gearshape")
             }
             .padding(.vertical, 8)
