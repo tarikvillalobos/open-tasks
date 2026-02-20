@@ -1,75 +1,75 @@
 # OpenTasks
 
-OpenTasks é um app macOS de barra de menu para criar e gerenciar listas de tarefas em janelas flutuantes com visual glass.
+OpenTasks is a macOS menu bar app for creating and managing task lists in floating glass-style windows.
 
-## Estado Atual
+## Current Status
 
-- App roda como `MenuBarExtra` (sem ícone no Dock).
-- Suporta múltiplas janelas de tarefas (`OpenTask`).
-- Possui tela de configuração (`Config`) com sidebar lateral.
+- Runs as a `MenuBarExtra` app (no Dock icon).
+- Supports multiple task windows (`OpenTask`).
+- Includes a `Config` screen with a sidebar.
 
-## Funcionalidades
+## Features
 
-- Abrir múltiplas janelas de tarefas.
-- Adicionar tarefa nova pelo input e botão `+`.
-- Marcar tarefa como concluída.
-- Editar título da tarefa.
-- Excluir tarefa.
-- Expandir/recolher linha da tarefa.
-- Reordenar tarefas por drag and drop usando o handle.
-- Bloqueio de reordenação para tarefas já concluídas.
-- Ação de `Undo` ao concluir tarefa (temporária).
-- Contadores no rodapé (`pendentes` e `% concluído`).
-- Janela arrastável apenas na região de drag do topo.
-- Abertura da tela de config pelo menu (`Config`) e pelo ícone de engrenagem no header da OpenTask.
+- Open multiple task windows.
+- Add tasks using the input field and `+` button.
+- Mark tasks as completed.
+- Edit task titles.
+- Delete tasks.
+- Expand/collapse task rows.
+- Reorder tasks via drag and drop using the handle.
+- Reordering is blocked for completed tasks.
+- Temporary `Undo` action after completing a task.
+- Footer counters (`pending` and `% completed`).
+- Window dragging only from the dedicated top drag region.
+- Open config from the menu (`Config`) and from the gear icon in the OpenTask header.
 
-## Gestão Via Menu Bar
+## Menu Bar Management
 
-- `Open Another` para criar nova janela.
-- Lista das janelas abertas.
-- Mostrar/ocultar janela da lista.
-- Renomear janela.
-- Fechar janela individual.
+- `Open Another` to create a new window.
+- List of open windows.
+- Show/hide each listed window.
+- Rename a window.
+- Close an individual window.
 - `Close All Open`.
-- Abrir `Config`.
+- Open `Config`.
 - `Quit`.
 
-## Tela de Config
+## Config Screen
 
-- Sidebar com opções `Geral`, `Aparência`, `Codex CLI` e `Atalhos`.
-- Campo de busca para filtrar opções da sidebar.
-- Conteúdo da seção selecionada exibido na área principal.
+- Sidebar options: `General`, `Appearance`, `Codex CLI`, and `Shortcuts`.
+- Search field to filter sidebar options.
+- Selected section content displayed in the main panel.
 
-## Recursos Temporariamente Desabilitados
+## Temporarily Disabled
 
-- Botão `Sugerir` na OpenTask.
-- Botão da lâmpada no header da OpenTask.
+- `Suggest` button in OpenTask.
+- Lightbulb button in the OpenTask header.
 
-## Observações Técnicas
+## Technical Notes
 
-- Estado das tarefas é em memória (não há persistência em arquivo/banco atualmente).
-- Opções da tela de config estão em estado local de UI (sem persistência definitiva).
+- Task state is in-memory only (no file/database persistence yet).
+- Config options currently use local UI state (no permanent persistence yet).
 
-## Como Rodar
+## Running the App
 
 ### Xcode
 
-1. Abra `open-tasks.xcodeproj`.
-2. Selecione o scheme `open-tasks`.
-3. Rode no destino `My Mac`.
+1. Open `open-tasks.xcodeproj`.
+2. Select the `open-tasks` scheme.
+3. Run on `My Mac`.
 
-### Linha de comando
+### Command Line
 
 ```bash
 xcodebuild -project open-tasks.xcodeproj -scheme open-tasks -destination 'platform=macOS' build
 ```
 
-## Estrutura Principal
+## Main Structure
 
-- `open-tasks/open_tasksApp.swift`: entrypoint, scenes e menu bar.
-- `open-tasks/ContentView.swift`: janela principal de tarefas.
-- `open-tasks/SettingsView.swift`: tela de configuração.
+- `open-tasks/open_tasksApp.swift`: entrypoint, scenes, and menu bar.
+- `open-tasks/ContentView.swift`: main task window.
+- `open-tasks/SettingsView.swift`: config screen.
 
-## Licença
+## License
 
-Consulte `LICENSE`.
+See `LICENSE`.
