@@ -60,22 +60,6 @@ struct SettingsView: View {
         }
     }
 
-    private enum IconSizeOption: String, CaseIterable, Identifiable {
-        case small = "Pequeno"
-        case medium = "Médio"
-        case large = "Grande"
-
-        var id: String { rawValue }
-    }
-
-    private enum ScrollbarBehavior: String, CaseIterable, Identifiable {
-        case automatic = "Automático"
-        case whileScrolling = "Ao rolar"
-        case always = "Sempre"
-
-        var id: String { rawValue }
-    }
-
     private struct ShortcutItem: Identifiable {
         let id = UUID()
         let name: String
@@ -108,8 +92,6 @@ struct SettingsView: View {
     @State private var appLanguage = "Português (Brasil)"
 
     @State private var selectedAccentColorIndex = 0
-    @State private var selectedIconSize: IconSizeOption = .medium
-    @State private var selectedScrollbarBehavior: ScrollbarBehavior = .automatic
 
     @State private var selectedModel = "Gemini 1.5 Pro"
     @State private var temperature = 0.7
@@ -561,69 +543,6 @@ struct SettingsView: View {
                             )
                     }
                     .buttonStyle(.plain)
-                }
-            }
-
-            sectionTitle("TAMANHO DOS ÍCONES")
-            HStack(spacing: 8) {
-                ForEach(IconSizeOption.allCases) { size in
-                    Button {
-                        selectedIconSize = size
-                    } label: {
-                        Text(size.rawValue)
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundStyle(selectedIconSize == size ? primaryTextColor : secondaryTextColor)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .fill(selectedIconSize == size ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.18) : .clear)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(6)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(cardFillColor)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(cardStrokeColor, lineWidth: 1)
-                    )
-            )
-
-            sectionTitle("BARRAS DE ROLAGEM")
-            settingsCard {
-                ForEach(ScrollbarBehavior.allCases.indices, id: \.self) { index in
-                    let behavior = ScrollbarBehavior.allCases[index]
-                    Button {
-                        selectedScrollbarBehavior = behavior
-                    } label: {
-                        HStack(spacing: 12) {
-                            Circle()
-                                .stroke(secondaryTextColor.opacity(0.75), lineWidth: 1.6)
-                                .frame(width: 20, height: 20)
-                                .overlay(
-                                    Circle()
-                                        .fill(Color(red: 0.39, green: 0.44, blue: 0.99))
-                                        .frame(width: 10, height: 10)
-                                        .opacity(selectedScrollbarBehavior == behavior ? 1 : 0)
-                                )
-
-                            Text(behavior.rawValue)
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(primaryTextColor)
-                            Spacer()
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                    }
-                    .buttonStyle(.plain)
-
-                    if index < ScrollbarBehavior.allCases.count - 1 {
-                        rowDivider
-                    }
                 }
             }
         }
