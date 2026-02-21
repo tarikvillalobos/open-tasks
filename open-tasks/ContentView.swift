@@ -179,7 +179,6 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .handCursorOnHover()
 
-                HeaderIcon(symbol: "ellipsis")
                 Button(action: closeTodoWindow) {
                     HeaderIcon(symbol: "xmark")
                 }
