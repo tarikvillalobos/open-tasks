@@ -90,33 +90,10 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(Color(red: 0.97, green: 0.97, blue: 0.98).opacity(0.98))
-                .overlay(alignment: .topLeading) {
-                    LinearGradient(
-                        colors: [
-                            .white.opacity(0.70),
-                            .white.opacity(0.28),
-                            .clear
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                }
-                .overlay(alignment: .bottomTrailing) {
-                    LinearGradient(
-                        colors: [
-                            .black.opacity(0.08),
-                            .clear
-                        ],
-                        startPoint: .bottomTrailing,
-                        endPoint: .topLeading
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                }
+                .fill(Color.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .strokeBorder(.black.opacity(0.10), lineWidth: 1)
+                        .strokeBorder(.black.opacity(0.08), lineWidth: 1)
                 )
                 .padding(.horizontal, panelHorizontalInset)
                 .padding(.vertical, panelVerticalInset)
@@ -220,7 +197,7 @@ struct ContentView: View {
                 "",
                 text: $newTask,
                 prompt: Text("Nova tarefa simples...")
-                    .foregroundColor(Color.black.opacity(0.38))
+                    .foregroundColor(Color.black.opacity(0.40))
             )
             .textFieldStyle(.plain)
             .font(.system(size: 16, weight: .medium, design: .rounded))
@@ -236,10 +213,10 @@ struct ContentView: View {
                     .frame(width: 34, height: 34)
                     .background(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(.black.opacity(0.05))
+                            .fill(.white)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(.black.opacity(0.12), lineWidth: 1)
+                                    .stroke(.black.opacity(0.08), lineWidth: 1)
                             )
                     )
             }
@@ -249,10 +226,10 @@ struct ContentView: View {
         .frame(height: 44)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.black.opacity(0.04))
+                .fill(.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(.black.opacity(0.10), lineWidth: 1.2)
+                        .stroke(.black.opacity(0.08), lineWidth: 1.2)
                 )
         )
     }
@@ -262,15 +239,15 @@ struct ContentView: View {
             Button(action: {}) {
                 Label("Sugerir", systemImage: "wand.and.stars")
                     .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(.black.opacity(0.34))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(.black.opacity(0.18))
+                            .fill(.white)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(.white.opacity(0.10), lineWidth: 1)
+                                    .stroke(.black.opacity(0.08), lineWidth: 1)
                             )
                     )
             }
@@ -286,7 +263,7 @@ struct ContentView: View {
             if tasks.isEmpty {
                 Text("Vazio como o espaco...")
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.black.opacity(0.36))
+                    .foregroundStyle(.black.opacity(0.32))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else if tasks.count <= maxVisibleTasks {
                 LazyVStack(spacing: taskRowSpacing) {
@@ -340,15 +317,15 @@ struct ContentView: View {
         }
         .buttonStyle(.plain)
         .font(.system(size: 11, weight: .bold, design: .rounded))
-        .foregroundStyle(.white.opacity(0.94))
+        .foregroundStyle(.black.opacity(0.72))
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(.black.opacity(0.26))
+                .fill(.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(.white.opacity(0.12), lineWidth: 1)
+                        .stroke(.black.opacity(0.10), lineWidth: 1)
                 )
         )
         .handCursorOnHover()
@@ -384,7 +361,7 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "circle")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.50))
+                        .foregroundStyle(.black.opacity(0.40))
                 }
                 .buttonStyle(.plain)
                 .handCursorOnHover()
@@ -394,7 +371,7 @@ struct ContentView: View {
                 TextField("", text: $editingTaskTitle)
                     .textFieldStyle(.plain)
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.92))
+                    .foregroundStyle(.black.opacity(0.82))
                     .frame(maxHeight: .infinity, alignment: .center)
                     .onSubmit {
                         saveTaskEdit(for: task.id)
@@ -402,8 +379,8 @@ struct ContentView: View {
             } else {
                 Text(task.title)
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundStyle(task.completed ? .white.opacity(0.50) : .white.opacity(0.88))
-                    .strikethrough(task.completed, color: .white.opacity(0.5))
+                    .foregroundStyle(task.completed ? .black.opacity(0.42) : .black.opacity(0.82))
+                    .strikethrough(task.completed, color: .black.opacity(0.38))
                     .lineLimit(isExpanded ? nil : 2)
                     .fixedSize(horizontal: false, vertical: isExpanded)
                     .frame(maxHeight: .infinity, alignment: .center)
@@ -417,7 +394,7 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "checkmark")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.82))
+                        .foregroundStyle(.black.opacity(0.78))
                         .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
@@ -428,7 +405,7 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.62))
+                        .foregroundStyle(.black.opacity(0.58))
                         .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
@@ -454,10 +431,10 @@ struct ContentView: View {
         .frame(height: rowHeight(for: task), alignment: .center)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.black.opacity(0.22))
+                .fill(.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(.white.opacity(0.10), lineWidth: 1)
+                        .stroke(.black.opacity(0.08), lineWidth: 1)
                 )
         )
     }
@@ -465,7 +442,7 @@ struct ContentView: View {
     private var footer: some View {
         VStack(spacing: 12) {
             Rectangle()
-                .fill(.black.opacity(0.10))
+                .fill(.black.opacity(0.08))
                 .frame(height: 1)
 
             HStack {
@@ -474,7 +451,7 @@ struct ContentView: View {
                 Text("\(completionPercent)% concluido")
             }
             .font(.system(size: 11, weight: .semibold, design: .rounded))
-            .foregroundStyle(.black.opacity(0.46))
+            .foregroundStyle(.black.opacity(0.52))
         }
     }
 
@@ -637,14 +614,14 @@ private struct HeaderIcon: View {
     var body: some View {
         Image(systemName: symbol)
             .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(.black.opacity(isActive ? 0.72 : 0.58))
+            .foregroundStyle(.black.opacity(isActive ? 0.72 : 0.56))
             .frame(width: 36, height: 36)
             .background(
                 Circle()
-                    .fill(isActive ? Color.indigo.opacity(0.20) : .black.opacity(0.05))
+                    .fill(.white)
                     .overlay(
                         Circle()
-                            .stroke(.black.opacity(isActive ? 0.16 : 0.10), lineWidth: 1)
+                            .stroke(isActive ? Color.indigo.opacity(0.40) : .black.opacity(0.10), lineWidth: 1)
                     )
             )
     }
@@ -660,14 +637,14 @@ private struct TaskRowActionButton: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.62))
+                .foregroundStyle(.black.opacity(0.58))
                 .frame(width: 24, height: 24)
                 .background(
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(isHovered ? .white.opacity(0.10) : .clear)
+                        .fill(isHovered ? .black.opacity(0.04) : .clear)
                         .overlay(
                             RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                .stroke(.white.opacity(isHovered ? 0.16 : 0), lineWidth: 1)
+                                .stroke(.black.opacity(isHovered ? 0.10 : 0), lineWidth: 1)
                         )
                 )
         }
@@ -698,10 +675,10 @@ private struct TaskReorderHandle: View {
     private var dotRow: some View {
         HStack(spacing: 3) {
             Circle()
-                .fill(.white.opacity(0.28))
+                .fill(.black.opacity(0.22))
                 .frame(width: 3.5, height: 3.5)
             Circle()
-                .fill(.white.opacity(0.28))
+                .fill(.black.opacity(0.22))
                 .frame(width: 3.5, height: 3.5)
         }
     }
