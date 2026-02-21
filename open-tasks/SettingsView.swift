@@ -99,6 +99,7 @@ struct SettingsView: View {
     @State private var searchText = ""
     @State private var hostWindow: NSWindow?
     @EnvironmentObject private var themeStore: AppThemeStore
+    @Environment(\.colorScheme) private var systemColorScheme
 
     @State private var launchAtLogin = false
     @State private var reopenPreviousWindows = true
@@ -181,13 +182,61 @@ struct SettingsView: View {
         ThemeMode(appTheme: themeStore.selectedTheme)
     }
 
+    private var isDarkTheme: Bool {
+        themeStore.resolvedColorScheme(systemColorScheme: systemColorScheme) == .dark
+    }
+
+    private var panelFillColor: Color {
+        isDarkTheme ? Color(red: 0.12, green: 0.13, blue: 0.16) : .white
+    }
+
+    private var panelStrokeColor: Color {
+        isDarkTheme ? .white.opacity(0.14) : .black.opacity(0.08)
+    }
+
+    private var cardFillColor: Color {
+        isDarkTheme ? Color(red: 0.16, green: 0.17, blue: 0.20) : .white
+    }
+
+    private var cardStrokeColor: Color {
+        isDarkTheme ? .white.opacity(0.10) : .black.opacity(0.08)
+    }
+
+    private var primaryTextColor: Color {
+        isDarkTheme ? .white.opacity(0.90) : .black.opacity(0.82)
+    }
+
+    private var secondaryTextColor: Color {
+        isDarkTheme ? .white.opacity(0.62) : .black.opacity(0.52)
+    }
+
+    private var tertiaryTextColor: Color {
+        isDarkTheme ? .white.opacity(0.48) : .black.opacity(0.44)
+    }
+
+    private var dividerColor: Color {
+        isDarkTheme ? .white.opacity(0.12) : .black.opacity(0.08)
+    }
+
+    private var searchPlaceholderColor: Color {
+        isDarkTheme ? .white.opacity(0.44) : .black.opacity(0.42)
+    }
+
+    private var selectedTabFillColor: Color {
+        Color(red: 0.39, green: 0.41, blue: 0.93).opacity(isDarkTheme ? 0.34 : 0.20)
+    }
+
+    private var selectedTabStrokeColor: Color {
+        Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.45)
+    }
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(Color.white)
+                .fill(panelFillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .strokeBorder(.black.opacity(0.08), lineWidth: 1)
+                        .strokeBorder(panelStrokeColor, lineWidth: 1)
                 )
                 .padding(.horizontal, panelHorizontalInset)
                 .padding(.vertical, panelVerticalInset)
@@ -230,7 +279,7 @@ struct SettingsView: View {
             sidebar
 
             Rectangle()
-                .fill(.black.opacity(0.08))
+                .fill(dividerColor)
                 .frame(width: 1)
                 .padding(.vertical, 8)
 
@@ -244,7 +293,7 @@ struct SettingsView: View {
             HStack(spacing: 0) {
                 Text("Config")
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.black.opacity(0.82))
+                    .foregroundStyle(primaryTextColor)
                     .frame(height: 36, alignment: .center)
 
                 Spacer()
@@ -254,17 +303,17 @@ struct SettingsView: View {
 
             HStack(spacing: 8) {
                 Button(action: {}) {
-                    SettingsHeaderIcon(symbol: "gearshape", isActive: true)
+                    SettingsHeaderIcon(symbol: "gearshape", isActive: true, isDarkTheme: isDarkTheme)
                 }
                 .buttonStyle(.plain)
                 .disabled(true)
 
-                SettingsHeaderIcon(symbol: activeTab.icon)
+                SettingsHeaderIcon(symbol: activeTab.icon, isDarkTheme: isDarkTheme)
 
-                SettingsHeaderIcon(symbol: "ellipsis")
+                SettingsHeaderIcon(symbol: "ellipsis", isDarkTheme: isDarkTheme)
 
                 Button(action: closeSettingsWindow) {
-                    SettingsHeaderIcon(symbol: "xmark")
+                    SettingsHeaderIcon(symbol: "xmark", isDarkTheme: isDarkTheme)
                 }
                 .buttonStyle(.plain)
             }
@@ -275,17 +324,17 @@ struct SettingsView: View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.black.opacity(0.46))
+                .foregroundStyle(tertiaryTextColor)
                 .frame(width: 20)
 
             TextField(
                 "",
                 text: $searchText,
-                prompt: Text("Buscar ajustes...").foregroundColor(.black.opacity(0.42))
+                prompt: Text("Buscar ajustes...").foregroundColor(searchPlaceholderColor)
             )
             .textFieldStyle(.plain)
             .font(.system(size: 16, weight: .medium, design: .rounded))
-            .foregroundStyle(.black.opacity(0.82))
+            .foregroundStyle(primaryTextColor)
 
             if !searchText.isEmpty {
                 Button {
@@ -293,7 +342,7 @@ struct SettingsView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 14))
-                        .foregroundStyle(.black.opacity(0.40))
+                        .foregroundStyle(tertiaryTextColor)
                 }
                 .buttonStyle(.plain)
             }
@@ -302,10 +351,10 @@ struct SettingsView: View {
         .frame(height: 44)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white)
+                .fill(cardFillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(.black.opacity(0.08), lineWidth: 1.2)
+                        .stroke(cardStrokeColor, lineWidth: 1.2)
                 )
         )
     }
@@ -321,10 +370,10 @@ struct SettingsView: View {
         .frame(maxHeight: .infinity, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.white)
+                .fill(cardFillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(.black.opacity(0.08), lineWidth: 1)
+                        .stroke(cardStrokeColor, lineWidth: 1)
                 )
         )
     }
@@ -332,7 +381,7 @@ struct SettingsView: View {
     private var sidebarTabs: some View {
         Group {
             if visibleTabs.isEmpty {
-                EmptySettingsStateView()
+                EmptySettingsStateView(isDarkTheme: isDarkTheme)
             } else {
                 VStack(spacing: 8) {
                     ForEach(visibleTabs) { tab in
@@ -355,15 +404,15 @@ struct SettingsView: View {
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                 Spacer(minLength: 0)
             }
-            .foregroundStyle(.black.opacity(activeTab == tab ? 0.86 : 0.62))
+            .foregroundStyle(activeTab == tab ? primaryTextColor : secondaryTextColor)
             .padding(.horizontal, 10)
             .padding(.vertical, 9)
             .background(
                 RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .fill(activeTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.20) : .white)
+                    .fill(activeTab == tab ? selectedTabFillColor : cardFillColor)
                     .overlay(
                         RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .stroke(activeTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.45) : .black.opacity(0.10), lineWidth: 1)
+                            .stroke(activeTab == tab ? selectedTabStrokeColor : cardStrokeColor, lineWidth: 1)
                     )
             )
         }
@@ -394,19 +443,19 @@ struct SettingsView: View {
     private var footer: some View {
         VStack(spacing: 8) {
             Rectangle()
-                .fill(.black.opacity(0.08))
+                .fill(dividerColor)
                 .frame(height: 1)
 
             HStack {
                 Text("Configuração ativa")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.black.opacity(0.52))
+                    .foregroundStyle(secondaryTextColor)
 
                 Spacer()
 
                 Text(activeTab.rawValue)
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.black.opacity(0.52))
+                    .foregroundStyle(secondaryTextColor)
             }
         }
     }
@@ -432,7 +481,7 @@ struct SettingsView: View {
                 HStack(spacing: 12) {
                     Text("Idioma do App")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.black.opacity(0.82))
+                        .foregroundStyle(primaryTextColor)
 
                     Spacer()
 
@@ -454,13 +503,13 @@ struct SettingsView: View {
                 HStack(spacing: 10) {
                     Text("Armazenamento Local")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.black.opacity(0.82))
+                        .foregroundStyle(primaryTextColor)
 
                     Spacer()
 
                     Text("2.4 GB")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.black.opacity(0.50))
+                        .foregroundStyle(secondaryTextColor)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
@@ -483,14 +532,14 @@ struct SettingsView: View {
                                 .fill(themePreviewBackground(for: mode))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .stroke(mode == selectedTheme ? Color(red: 0.44, green: 0.45, blue: 0.98) : .black.opacity(0.16), lineWidth: mode == selectedTheme ? 2 : 1)
+                                        .stroke(mode == selectedTheme ? Color(red: 0.44, green: 0.45, blue: 0.98) : cardStrokeColor.opacity(0.85), lineWidth: mode == selectedTheme ? 2 : 1)
                                 )
                                 .frame(height: 76)
                                 .overlay(themePreviewContent(for: mode))
 
                             Text(mode.rawValue)
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.black.opacity(0.68))
+                                .foregroundStyle(secondaryTextColor)
                         }
                     }
                     .buttonStyle(.plain)
@@ -508,7 +557,7 @@ struct SettingsView: View {
                             .frame(width: 26, height: 26)
                             .overlay(
                                 Circle()
-                                    .stroke(.black.opacity(index == selectedAccentColorIndex ? 0.82 : 0), lineWidth: 2)
+                                    .stroke((isDarkTheme ? Color.white.opacity(0.86) : Color.black.opacity(0.82)).opacity(index == selectedAccentColorIndex ? 1 : 0), lineWidth: 2)
                             )
                     }
                     .buttonStyle(.plain)
@@ -523,7 +572,7 @@ struct SettingsView: View {
                     } label: {
                         Text(size.rawValue)
                             .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundStyle(.black.opacity(selectedIconSize == size ? 0.82 : 0.58))
+                            .foregroundStyle(selectedIconSize == size ? primaryTextColor : secondaryTextColor)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                             .background(
@@ -537,10 +586,10 @@ struct SettingsView: View {
             .padding(6)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(.white)
+                    .fill(cardFillColor)
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.black.opacity(0.08), lineWidth: 1)
+                            .stroke(cardStrokeColor, lineWidth: 1)
                     )
             )
 
@@ -553,7 +602,7 @@ struct SettingsView: View {
                     } label: {
                         HStack(spacing: 12) {
                             Circle()
-                                .stroke(.black.opacity(0.38), lineWidth: 1.6)
+                                .stroke(secondaryTextColor.opacity(0.75), lineWidth: 1.6)
                                 .frame(width: 20, height: 20)
                                 .overlay(
                                     Circle()
@@ -564,7 +613,7 @@ struct SettingsView: View {
 
                             Text(behavior.rawValue)
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.black.opacity(0.80))
+                                .foregroundStyle(primaryTextColor)
                             Spacer()
                         }
                         .padding(.horizontal, 16)
@@ -591,7 +640,7 @@ struct SettingsView: View {
 
             Text("O caminho deve apontar para o binário instalado via Homebrew ou npm.")
                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(.black.opacity(0.44))
+                .foregroundStyle(tertiaryTextColor)
                 .padding(.horizontal, 2)
 
             sectionTitle("INFERÊNCIA")
@@ -599,7 +648,7 @@ struct SettingsView: View {
                 HStack {
                     Text("Modelo Principal")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.black.opacity(0.82))
+                        .foregroundStyle(primaryTextColor)
 
                     Spacer()
 
@@ -619,14 +668,14 @@ struct SettingsView: View {
                 HStack(spacing: 10) {
                     Text("Temperatura")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.black.opacity(0.82))
+                        .foregroundStyle(primaryTextColor)
 
                     Slider(value: $temperature, in: 0...1, step: 0.1)
                         .tint(Color(red: 0.39, green: 0.44, blue: 0.99))
 
                     Text(String(format: "%.1f", temperature))
                         .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundStyle(.black.opacity(0.62))
+                        .foregroundStyle(secondaryTextColor)
                         .frame(width: 32)
                 }
                 .padding(.horizontal, 16)
@@ -654,11 +703,11 @@ struct SettingsView: View {
                         HStack {
                             Text(item.name)
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.black.opacity(0.82))
+                                .foregroundStyle(primaryTextColor)
 
                             Spacer()
 
-                            ShortcutKeysView(keys: item.keys)
+                            ShortcutKeysView(keys: item.keys, isDarkTheme: isDarkTheme)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 13)
@@ -676,13 +725,13 @@ struct SettingsView: View {
         HStack {
             Text(title)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(.black.opacity(0.82))
+                .foregroundStyle(primaryTextColor)
 
             Spacer()
 
             Text(value)
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                .foregroundStyle(.black.opacity(0.56))
+                .foregroundStyle(secondaryTextColor)
                 .lineLimit(1)
         }
         .padding(.horizontal, 16)
@@ -692,7 +741,7 @@ struct SettingsView: View {
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 12, weight: .bold, design: .rounded))
-            .foregroundStyle(.black.opacity(0.50))
+            .foregroundStyle(secondaryTextColor)
             .tracking(0.7)
             .padding(.top, 2)
     }
@@ -702,13 +751,13 @@ struct SettingsView: View {
             if let icon {
                 Image(systemName: icon)
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.black.opacity(0.58))
+                    .foregroundStyle(secondaryTextColor)
                     .frame(width: 20)
             }
 
             Text(title)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(.black.opacity(0.82))
+                .foregroundStyle(primaryTextColor)
 
             Spacer()
 
@@ -727,17 +776,17 @@ struct SettingsView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.white)
+                .fill(cardFillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(.black.opacity(0.08), lineWidth: 1)
+                        .stroke(cardStrokeColor, lineWidth: 1)
                 )
         )
     }
 
     private var rowDivider: some View {
         Rectangle()
-            .fill(.black.opacity(0.08))
+            .fill(dividerColor)
             .frame(height: 1)
             .padding(.horizontal, 12)
     }
@@ -805,18 +854,34 @@ struct SettingsView: View {
 private struct SettingsHeaderIcon: View {
     let symbol: String
     var isActive = false
+    var isDarkTheme = false
+
+    private var symbolColor: Color {
+        isDarkTheme ? .white.opacity(isActive ? 0.84 : 0.66) : .black.opacity(isActive ? 0.82 : 0.62)
+    }
+
+    private var fillColor: Color {
+        isDarkTheme ? Color(red: 0.20, green: 0.21, blue: 0.25) : .white
+    }
+
+    private var strokeColor: Color {
+        if isActive {
+            return Color(red: 0.42, green: 0.41, blue: 0.80).opacity(0.45)
+        }
+        return isDarkTheme ? .white.opacity(0.14) : .black.opacity(0.10)
+    }
 
     var body: some View {
         Image(systemName: symbol)
             .font(.system(size: 17, weight: .semibold))
-            .foregroundStyle(.black.opacity(isActive ? 0.82 : 0.62))
+            .foregroundStyle(symbolColor)
             .frame(width: 42, height: 42)
             .background(
                 Circle()
-                    .fill(.white)
+                    .fill(fillColor)
                     .overlay(
                         Circle()
-                            .stroke(isActive ? Color(red: 0.42, green: 0.41, blue: 0.80).opacity(0.45) : .black.opacity(0.10), lineWidth: 1)
+                            .stroke(strokeColor, lineWidth: 1)
                     )
             )
     }
@@ -824,22 +889,35 @@ private struct SettingsHeaderIcon: View {
 
 private struct ShortcutKeysView: View {
     let keys: [String]
+    var isDarkTheme = false
+
+    private var textColor: Color {
+        isDarkTheme ? .white.opacity(0.84) : .black.opacity(0.78)
+    }
+
+    private var fillColor: Color {
+        isDarkTheme ? Color(red: 0.20, green: 0.21, blue: 0.25) : .white
+    }
+
+    private var strokeColor: Color {
+        isDarkTheme ? .white.opacity(0.12) : .black.opacity(0.12)
+    }
 
     var body: some View {
         HStack(spacing: 6) {
             ForEach(keys, id: \.self) { key in
                 Text(key)
                     .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundStyle(.black.opacity(0.78))
+                    .foregroundStyle(textColor)
                     .frame(minWidth: 26)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 5)
                     .background(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(.white)
+                            .fill(fillColor)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .stroke(.black.opacity(0.12), lineWidth: 1)
+                                    .stroke(strokeColor, lineWidth: 1)
                             )
                     )
             }
@@ -848,23 +926,37 @@ private struct ShortcutKeysView: View {
 }
 
 private struct EmptySettingsStateView: View {
+    var isDarkTheme = false
+
+    private var textColor: Color {
+        isDarkTheme ? .white.opacity(0.58) : .black.opacity(0.50)
+    }
+
+    private var fillColor: Color {
+        isDarkTheme ? Color(red: 0.20, green: 0.21, blue: 0.25) : .white
+    }
+
+    private var strokeColor: Color {
+        isDarkTheme ? .white.opacity(0.10) : .black.opacity(0.08)
+    }
+
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.black.opacity(0.50))
+                .foregroundStyle(textColor)
             Text("Nenhum ajuste encontrado")
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(.black.opacity(0.50))
+                .foregroundStyle(textColor)
         }
         .frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
         .padding(.horizontal, 12)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.white)
+                .fill(fillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(.black.opacity(0.08), lineWidth: 1)
+                        .stroke(strokeColor, lineWidth: 1)
                 )
         )
     }
