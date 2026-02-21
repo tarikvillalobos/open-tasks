@@ -27,7 +27,7 @@ struct ContentView: View {
     private let expandedTaskRowHeight: CGFloat = 84
     private let taskRowSpacing: CGFloat = 10
     private let emptyStateHeight: CGFloat = 120
-    private let staticLayoutHeight: CGFloat = 244
+    private let staticLayoutHeight: CGFloat = 198
     private let taskDragType = UTType.plainText
 
     @State private var newTask = ""
@@ -42,6 +42,8 @@ struct ContentView: View {
     @StateObject private var windowStore = TodoWindowStore.shared
     @FocusState private var isInputFocused: Bool
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.colorScheme) private var systemColorScheme
+    @EnvironmentObject private var themeStore: AppThemeStore
 
     private struct UndoSnapshot {
         let task: TodoItem
@@ -72,6 +74,66 @@ struct ContentView: View {
         return item.title.hasPrefix("OpenTask ") ? "OpenTasks" : item.title
     }
 
+    private var isDarkTheme: Bool {
+        themeStore.resolvedColorScheme(systemColorScheme: systemColorScheme) == .dark
+    }
+
+    private var panelFillColor: Color {
+        isDarkTheme ? Color(red: 0.12, green: 0.13, blue: 0.16) : .white
+    }
+
+    private var panelStrokeColor: Color {
+        isDarkTheme ? .white.opacity(0.14) : .black.opacity(0.08)
+    }
+
+    private var cardFillColor: Color {
+        isDarkTheme ? Color(red: 0.16, green: 0.17, blue: 0.20) : .white
+    }
+
+    private var cardStrokeColor: Color {
+        isDarkTheme ? .white.opacity(0.10) : .black.opacity(0.08)
+    }
+
+    private var primaryTextColor: Color {
+        isDarkTheme ? .white.opacity(0.90) : .black.opacity(0.82)
+    }
+
+    private var secondaryTextColor: Color {
+        isDarkTheme ? .white.opacity(0.62) : .black.opacity(0.52)
+    }
+
+    private var tertiaryTextColor: Color {
+        isDarkTheme ? .white.opacity(0.48) : .black.opacity(0.40)
+    }
+
+    private var iconTextColor: Color {
+        isDarkTheme ? .white.opacity(0.72) : .black.opacity(0.58)
+    }
+
+    private var dividerColor: Color {
+        isDarkTheme ? .white.opacity(0.12) : .black.opacity(0.08)
+    }
+
+    private var hoverFillColor: Color {
+        isDarkTheme ? .white.opacity(0.08) : .black.opacity(0.04)
+    }
+
+    private var hoverStrokeColor: Color {
+        isDarkTheme ? .white.opacity(0.16) : .black.opacity(0.10)
+    }
+
+    private var strikeColor: Color {
+        isDarkTheme ? .white.opacity(0.30) : .black.opacity(0.38)
+    }
+
+    private var placeholderTextColor: Color {
+        isDarkTheme ? .white.opacity(0.42) : .black.opacity(0.40)
+    }
+
+    private var emptyStateTextColor: Color {
+        isDarkTheme ? .white.opacity(0.32) : .black.opacity(0.32)
+    }
+
     private var tasksContainerHeight: CGFloat {
         guard !tasks.isEmpty else { return emptyStateHeight }
         let visibleTasks = Array(tasks.prefix(visibleTaskCount))
@@ -90,37 +152,10 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(.regularMaterial)
+                .fill(panelFillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .fill(Color(red: 0.12, green: 0.13, blue: 0.15).opacity(0.46))
-                )
-                .overlay(alignment: .topLeading) {
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.45, green: 0.39, blue: 0.36).opacity(0.20),
-                            Color(red: 0.35, green: 0.30, blue: 0.36).opacity(0.10),
-                            .clear
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                }
-                .overlay(alignment: .bottomLeading) {
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.12, green: 0.36, blue: 0.52).opacity(0.28),
-                            .clear
-                        ],
-                        startPoint: .bottomLeading,
-                        endPoint: .topTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                }
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .strokeBorder(.white.opacity(0.20), lineWidth: 1)
+                        .strokeBorder(panelStrokeColor, lineWidth: 1)
                 )
                 .padding(.horizontal, panelHorizontalInset)
                 .padding(.vertical, panelVerticalInset)
@@ -128,8 +163,6 @@ struct ContentView: View {
             VStack(spacing: 14) {
                 header
                 inputRow
-
-                suggestButton
 
                 tasksSection
                     .padding(.bottom, 8)
@@ -181,7 +214,7 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 Text(panelTitle)
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.97))
+                    .foregroundStyle(primaryTextColor)
                     .frame(height: 36, alignment: .center)
 
                 Spacer()
@@ -191,26 +224,25 @@ struct ContentView: View {
 
             HStack(spacing: 8) {
                 Button(action: {}) {
-                    HeaderIcon(symbol: "lightbulb", isActive: true)
+                    HeaderIcon(symbol: "lightbulb", isActive: true, isDarkTheme: isDarkTheme)
                 }
                 .buttonStyle(.plain)
                 .disabled(true)
 
                 Button(action: duplicateTodoWindow) {
-                    HeaderIcon(symbol: "doc.on.doc")
+                    HeaderIcon(symbol: "doc.on.doc", isDarkTheme: isDarkTheme)
                 }
                 .buttonStyle(.plain)
                 .handCursorOnHover()
 
                 Button(action: openSettingsWindow) {
-                    HeaderIcon(symbol: "gearshape")
+                    HeaderIcon(symbol: "gearshape", isDarkTheme: isDarkTheme)
                 }
                 .buttonStyle(.plain)
                 .handCursorOnHover()
 
-                HeaderIcon(symbol: "ellipsis")
                 Button(action: closeTodoWindow) {
-                    HeaderIcon(symbol: "xmark")
+                    HeaderIcon(symbol: "xmark", isDarkTheme: isDarkTheme)
                 }
                 .buttonStyle(.plain)
                 .handCursorOnHover()
@@ -224,11 +256,11 @@ struct ContentView: View {
                 "",
                 text: $newTask,
                 prompt: Text("Nova tarefa simples...")
-                    .foregroundColor(Color.white.opacity(0.70))
+                    .foregroundColor(placeholderTextColor)
             )
             .textFieldStyle(.plain)
             .font(.system(size: 16, weight: .medium, design: .rounded))
-            .foregroundStyle(.white.opacity(0.92))
+            .foregroundStyle(primaryTextColor)
             .padding(.leading, 12)
             .focused($isInputFocused)
             .onSubmit(addTask)
@@ -236,14 +268,14 @@ struct ContentView: View {
             Button(action: addTask) {
                 Image(systemName: "plus")
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(iconTextColor)
                     .frame(width: 34, height: 34)
                     .background(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(.white.opacity(0.06))
+                            .fill(cardFillColor)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(.white.opacity(0.14), lineWidth: 1)
+                                    .stroke(cardStrokeColor, lineWidth: 1)
                             )
                     )
             }
@@ -253,36 +285,12 @@ struct ContentView: View {
         .frame(height: 44)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.17))
+                .fill(cardFillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(.white.opacity(0.20), lineWidth: 1.2)
+                        .stroke(cardStrokeColor, lineWidth: 1.2)
                 )
         )
-    }
-
-    private var suggestButton: some View {
-        HStack {
-            Button(action: {}) {
-                Label("Sugerir", systemImage: "wand.and.stars")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.9))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(.black.opacity(0.18))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(.white.opacity(0.10), lineWidth: 1)
-                            )
-                    )
-            }
-            .buttonStyle(.plain)
-            .disabled(true)
-
-            Spacer()
-        }
     }
 
     private var tasksSection: some View {
@@ -290,7 +298,7 @@ struct ContentView: View {
             if tasks.isEmpty {
                 Text("Vazio como o espaco...")
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.42))
+                    .foregroundStyle(emptyStateTextColor)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else if tasks.count <= maxVisibleTasks {
                 LazyVStack(spacing: taskRowSpacing) {
@@ -344,15 +352,15 @@ struct ContentView: View {
         }
         .buttonStyle(.plain)
         .font(.system(size: 11, weight: .bold, design: .rounded))
-        .foregroundStyle(.white.opacity(0.94))
+        .foregroundStyle(iconTextColor)
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(.black.opacity(0.26))
+                .fill(cardFillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(.white.opacity(0.12), lineWidth: 1)
+                        .stroke(cardStrokeColor, lineWidth: 1)
                 )
         )
         .handCursorOnHover()
@@ -363,10 +371,10 @@ struct ContentView: View {
 
         return HStack(alignment: .center, spacing: 10) {
             if task.completed {
-                TaskReorderHandle()
+                TaskReorderHandle(isDarkTheme: isDarkTheme)
                     .opacity(0.35)
             } else {
-                TaskReorderHandle()
+                TaskReorderHandle(isDarkTheme: isDarkTheme)
                     .onDrag {
                         draggedTaskID = task.id
                         return NSItemProvider(
@@ -388,7 +396,7 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "circle")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.50))
+                        .foregroundStyle(placeholderTextColor)
                 }
                 .buttonStyle(.plain)
                 .handCursorOnHover()
@@ -398,7 +406,7 @@ struct ContentView: View {
                 TextField("", text: $editingTaskTitle)
                     .textFieldStyle(.plain)
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.92))
+                    .foregroundStyle(primaryTextColor)
                     .frame(maxHeight: .infinity, alignment: .center)
                     .onSubmit {
                         saveTaskEdit(for: task.id)
@@ -406,8 +414,8 @@ struct ContentView: View {
             } else {
                 Text(task.title)
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundStyle(task.completed ? .white.opacity(0.50) : .white.opacity(0.88))
-                    .strikethrough(task.completed, color: .white.opacity(0.5))
+                    .foregroundStyle(task.completed ? secondaryTextColor : primaryTextColor)
+                    .strikethrough(task.completed, color: strikeColor)
                     .lineLimit(isExpanded ? nil : 2)
                     .fixedSize(horizontal: false, vertical: isExpanded)
                     .frame(maxHeight: .infinity, alignment: .center)
@@ -421,7 +429,7 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "checkmark")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.82))
+                        .foregroundStyle(primaryTextColor)
                         .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
@@ -432,22 +440,22 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.62))
+                        .foregroundStyle(iconTextColor)
                         .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
                 .handCursorOnHover()
             } else {
-                TaskRowActionButton(symbol: isExpanded ? "chevron.up" : "chevron.down") {
+                TaskRowActionButton(symbol: isExpanded ? "chevron.up" : "chevron.down", isDarkTheme: isDarkTheme) {
                     toggleTaskExpansion(for: task.id)
                 }
 
                 if !task.completed {
-                    TaskRowActionButton(symbol: "pencil") {
+                    TaskRowActionButton(symbol: "pencil", isDarkTheme: isDarkTheme) {
                         startTaskEdit(for: task.id)
                     }
 
-                    TaskRowActionButton(symbol: "trash") {
+                    TaskRowActionButton(symbol: "trash", isDarkTheme: isDarkTheme) {
                         guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
                         deleteTask(at: index)
                     }
@@ -458,10 +466,10 @@ struct ContentView: View {
         .frame(height: rowHeight(for: task), alignment: .center)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.black.opacity(0.22))
+                .fill(cardFillColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(.white.opacity(0.10), lineWidth: 1)
+                        .stroke(cardStrokeColor, lineWidth: 1)
                 )
         )
     }
@@ -469,7 +477,7 @@ struct ContentView: View {
     private var footer: some View {
         VStack(spacing: 12) {
             Rectangle()
-                .fill(.white.opacity(0.13))
+                .fill(dividerColor)
                 .frame(height: 1)
 
             HStack {
@@ -478,7 +486,7 @@ struct ContentView: View {
                 Text("\(completionPercent)% concluido")
             }
             .font(.system(size: 11, weight: .semibold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.58))
+            .foregroundStyle(secondaryTextColor)
         }
     }
 
@@ -637,18 +645,34 @@ private extension View {
 private struct HeaderIcon: View {
     let symbol: String
     var isActive: Bool = false
+    var isDarkTheme: Bool = false
+
+    private var symbolColor: Color {
+        isDarkTheme ? .white.opacity(isActive ? 0.76 : 0.62) : .black.opacity(isActive ? 0.72 : 0.56)
+    }
+
+    private var fillColor: Color {
+        isDarkTheme ? Color(red: 0.20, green: 0.21, blue: 0.25) : .white
+    }
+
+    private var strokeColor: Color {
+        if isActive {
+            return Color.indigo.opacity(0.40)
+        }
+        return isDarkTheme ? .white.opacity(0.14) : .black.opacity(0.10)
+    }
 
     var body: some View {
         Image(systemName: symbol)
             .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(.white.opacity(isActive ? 0.86 : 0.56))
+            .foregroundStyle(symbolColor)
             .frame(width: 36, height: 36)
             .background(
                 Circle()
-                    .fill(isActive ? Color.indigo.opacity(0.30) : .white.opacity(0.08))
+                    .fill(fillColor)
                     .overlay(
                         Circle()
-                            .stroke(.white.opacity(isActive ? 0.20 : 0.12), lineWidth: 1)
+                            .stroke(strokeColor, lineWidth: 1)
                     )
             )
     }
@@ -656,22 +680,35 @@ private struct HeaderIcon: View {
 
 private struct TaskRowActionButton: View {
     let symbol: String
+    var isDarkTheme: Bool = false
     let action: () -> Void
 
     @State private var isHovered = false
+
+    private var symbolColor: Color {
+        isDarkTheme ? .white.opacity(0.64) : .black.opacity(0.58)
+    }
+
+    private var hoverFillColor: Color {
+        isDarkTheme ? .white.opacity(0.08) : .black.opacity(0.04)
+    }
+
+    private var hoverStrokeColor: Color {
+        isDarkTheme ? .white.opacity(0.16) : .black.opacity(0.10)
+    }
 
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.62))
+                .foregroundStyle(symbolColor)
                 .frame(width: 24, height: 24)
                 .background(
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(isHovered ? .white.opacity(0.10) : .clear)
+                        .fill(isHovered ? hoverFillColor : .clear)
                         .overlay(
                             RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                .stroke(.white.opacity(isHovered ? 0.16 : 0), lineWidth: 1)
+                                .stroke(isHovered ? hoverStrokeColor : .clear, lineWidth: 1)
                         )
                 )
         }
@@ -688,6 +725,12 @@ private struct TaskRowActionButton: View {
 }
 
 private struct TaskReorderHandle: View {
+    var isDarkTheme: Bool = false
+
+    private var dotColor: Color {
+        isDarkTheme ? .white.opacity(0.30) : .black.opacity(0.22)
+    }
+
     var body: some View {
         VStack(spacing: 3) {
             dotRow
@@ -702,10 +745,10 @@ private struct TaskReorderHandle: View {
     private var dotRow: some View {
         HStack(spacing: 3) {
             Circle()
-                .fill(.white.opacity(0.28))
+                .fill(dotColor)
                 .frame(width: 3.5, height: 3.5)
             Circle()
-                .fill(.white.opacity(0.28))
+                .fill(dotColor)
                 .frame(width: 3.5, height: 3.5)
         }
     }

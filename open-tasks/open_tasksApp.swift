@@ -9,31 +9,98 @@ import SwiftUI
 import Combine
 import AppKit
 
+enum AppTheme: String, CaseIterable {
+    case light
+    case dark
+    case automatic
+
+    var preferredColorScheme: ColorScheme? {
+        switch self {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        case .automatic:
+            return nil
+        }
+    }
+
+    func resolvedColorScheme(systemColorScheme: ColorScheme) -> ColorScheme {
+        switch self {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        case .automatic:
+            return systemColorScheme
+        }
+    }
+}
+
+final class AppThemeStore: ObservableObject {
+    static let shared = AppThemeStore()
+
+    @Published var selectedTheme: AppTheme {
+        didSet {
+            guard selectedTheme != oldValue else { return }
+            UserDefaults.standard.set(selectedTheme.rawValue, forKey: storageKey)
+        }
+    }
+
+    private let storageKey = "openTasks.appTheme"
+
+    private init() {
+        if let storedTheme = UserDefaults.standard.string(forKey: storageKey),
+           let resolvedTheme = AppTheme(rawValue: storedTheme) {
+            selectedTheme = resolvedTheme
+        } else {
+            selectedTheme = .light
+        }
+    }
+
+    var preferredColorScheme: ColorScheme? {
+        selectedTheme.preferredColorScheme
+    }
+
+    func resolvedColorScheme(systemColorScheme: ColorScheme) -> ColorScheme {
+        selectedTheme.resolvedColorScheme(systemColorScheme: systemColorScheme)
+    }
+}
+
 @main
 struct open_tasksApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @StateObject private var themeStore = AppThemeStore.shared
 
     var body: some Scene {
         WindowGroup(id: "todo-window") {
             ContentView()
+                .environmentObject(themeStore)
+                .preferredColorScheme(themeStore.preferredColorScheme)
         }
         .windowStyle(.plain)
         .windowResizability(.contentSize)
 
         Window("Config", id: "config-window") {
             SettingsView()
+                .environmentObject(themeStore)
+                .preferredColorScheme(themeStore.preferredColorScheme)
         }
         .windowStyle(.plain)
         .windowResizability(.contentSize)
 
         MenuBarExtra("OpenTasks", systemImage: "checklist") {
             MenuBarContent()
+                .environmentObject(themeStore)
         }
         .menuBarExtraStyle(.window)
     }
 }
 
 private struct MenuBarContent: View {
+    private let maxVisibleExpandedTasks = 4
+    private let expandedTaskRowHeight: CGFloat = 34
+
     @StateObject private var windowStore = TodoWindowStore.shared
     @Environment(\.openWindow) private var openWindow
     @State private var isTasksExpanded = false
@@ -145,17 +212,34 @@ private struct MenuBarContent: View {
                                         .padding(.leading, 24)
                                         .padding(.bottom, 4)
                                 } else {
-                                    ForEach(entries) { entry in
-                                        Button(entry.title) {
-                                            revealWindow(for: item.id)
+                                    Group {
+                                        if entries.count > maxVisibleExpandedTasks {
+                                            ScrollView(.vertical) {
+                                                VStack(alignment: .leading, spacing: 0) {
+                                                    ForEach(entries) { entry in
+                                                        topbarTaskEntryButton(entry.title, windowID: item.id)
+                                                    }
+                                                }
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .frame(height: CGFloat(maxVisibleExpandedTasks) * expandedTaskRowHeight)
+                                        } else {
+                                            VStack(alignment: .leading, spacing: 0) {
+                                                ForEach(entries) { entry in
+                                                    topbarTaskEntryButton(entry.title, windowID: item.id)
+                                                }
+                                            }
+                                            .frame(maxWidth: .infinity, alignment: .leading)
                                         }
-                                        .lineLimit(1)
-                                        .padding(.leading, 24)
-                                        .padding(.vertical, 2)
                                     }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.leading, 24)
+                                    .padding(.bottom, 4)
                                 }
                             }
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
                     Divider()
@@ -203,6 +287,14 @@ private struct MenuBarContent: View {
                 cancelInlineRename()
             }
         }
+    }
+
+    private func topbarTaskEntryButton(_ title: String, windowID: ObjectIdentifier) -> some View {
+        Button(title) {
+            revealWindow(for: windowID)
+        }
+        .lineLimit(1)
+        .padding(.vertical, 2)
     }
 
     private func toggleExpandedTasks(for windowID: ObjectIdentifier) {
