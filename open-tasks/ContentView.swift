@@ -27,7 +27,7 @@ struct ContentView: View {
     private let expandedTaskRowHeight: CGFloat = 84
     private let taskRowSpacing: CGFloat = 10
     private let emptyStateHeight: CGFloat = 120
-    private let staticLayoutHeight: CGFloat = 244
+    private let staticLayoutHeight: CGFloat = 198
     private let taskDragType = UTType.plainText
 
     @State private var newTask = ""
@@ -101,8 +101,6 @@ struct ContentView: View {
             VStack(spacing: 14) {
                 header
                 inputRow
-
-                suggestButton
 
                 tasksSection
                     .padding(.bottom, 8)
@@ -232,30 +230,6 @@ struct ContentView: View {
                         .stroke(.black.opacity(0.08), lineWidth: 1.2)
                 )
         )
-    }
-
-    private var suggestButton: some View {
-        HStack {
-            Button(action: {}) {
-                Label("Sugerir", systemImage: "wand.and.stars")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(.black.opacity(0.34))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(.white)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(.black.opacity(0.08), lineWidth: 1)
-                            )
-                    )
-            }
-            .buttonStyle(.plain)
-            .disabled(true)
-
-            Spacer()
-        }
     }
 
     private var tasksSection: some View {
