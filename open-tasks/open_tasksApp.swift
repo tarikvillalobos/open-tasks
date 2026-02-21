@@ -9,25 +9,89 @@ import SwiftUI
 import Combine
 import AppKit
 
+enum AppTheme: String, CaseIterable {
+    case light
+    case dark
+    case automatic
+
+    var preferredColorScheme: ColorScheme? {
+        switch self {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        case .automatic:
+            return nil
+        }
+    }
+
+    func resolvedColorScheme(systemColorScheme: ColorScheme) -> ColorScheme {
+        switch self {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        case .automatic:
+            return systemColorScheme
+        }
+    }
+}
+
+final class AppThemeStore: ObservableObject {
+    static let shared = AppThemeStore()
+
+    @Published var selectedTheme: AppTheme {
+        didSet {
+            guard selectedTheme != oldValue else { return }
+            UserDefaults.standard.set(selectedTheme.rawValue, forKey: storageKey)
+        }
+    }
+
+    private let storageKey = "openTasks.appTheme"
+
+    private init() {
+        if let storedTheme = UserDefaults.standard.string(forKey: storageKey),
+           let resolvedTheme = AppTheme(rawValue: storedTheme) {
+            selectedTheme = resolvedTheme
+        } else {
+            selectedTheme = .light
+        }
+    }
+
+    var preferredColorScheme: ColorScheme? {
+        selectedTheme.preferredColorScheme
+    }
+
+    func resolvedColorScheme(systemColorScheme: ColorScheme) -> ColorScheme {
+        selectedTheme.resolvedColorScheme(systemColorScheme: systemColorScheme)
+    }
+}
+
 @main
 struct open_tasksApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @StateObject private var themeStore = AppThemeStore.shared
 
     var body: some Scene {
         WindowGroup(id: "todo-window") {
             ContentView()
+                .environmentObject(themeStore)
+                .preferredColorScheme(themeStore.preferredColorScheme)
         }
         .windowStyle(.plain)
         .windowResizability(.contentSize)
 
         Window("Config", id: "config-window") {
             SettingsView()
+                .environmentObject(themeStore)
+                .preferredColorScheme(themeStore.preferredColorScheme)
         }
         .windowStyle(.plain)
         .windowResizability(.contentSize)
 
         MenuBarExtra("OpenTasks", systemImage: "checklist") {
             MenuBarContent()
+                .environmentObject(themeStore)
         }
         .menuBarExtraStyle(.window)
     }
