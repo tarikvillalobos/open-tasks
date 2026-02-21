@@ -90,16 +90,12 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(.regularMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .fill(Color(red: 0.12, green: 0.13, blue: 0.15).opacity(0.46))
-                )
+                .fill(Color(red: 0.97, green: 0.97, blue: 0.98).opacity(0.98))
                 .overlay(alignment: .topLeading) {
                     LinearGradient(
                         colors: [
-                            Color(red: 0.45, green: 0.39, blue: 0.36).opacity(0.20),
-                            Color(red: 0.35, green: 0.30, blue: 0.36).opacity(0.10),
+                            .white.opacity(0.70),
+                            .white.opacity(0.28),
                             .clear
                         ],
                         startPoint: .topLeading,
@@ -107,20 +103,20 @@ struct ContentView: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                 }
-                .overlay(alignment: .bottomLeading) {
+                .overlay(alignment: .bottomTrailing) {
                     LinearGradient(
                         colors: [
-                            Color(red: 0.12, green: 0.36, blue: 0.52).opacity(0.28),
+                            .black.opacity(0.08),
                             .clear
                         ],
-                        startPoint: .bottomLeading,
-                        endPoint: .topTrailing
+                        startPoint: .bottomTrailing,
+                        endPoint: .topLeading
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .strokeBorder(.white.opacity(0.20), lineWidth: 1)
+                        .strokeBorder(.black.opacity(0.10), lineWidth: 1)
                 )
                 .padding(.horizontal, panelHorizontalInset)
                 .padding(.vertical, panelVerticalInset)
@@ -181,7 +177,7 @@ struct ContentView: View {
             HStack(spacing: 0) {
                 Text(panelTitle)
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.97))
+                    .foregroundStyle(.black.opacity(0.82))
                     .frame(height: 36, alignment: .center)
 
                 Spacer()
@@ -224,11 +220,11 @@ struct ContentView: View {
                 "",
                 text: $newTask,
                 prompt: Text("Nova tarefa simples...")
-                    .foregroundColor(Color.white.opacity(0.70))
+                    .foregroundColor(Color.black.opacity(0.38))
             )
             .textFieldStyle(.plain)
             .font(.system(size: 16, weight: .medium, design: .rounded))
-            .foregroundStyle(.white.opacity(0.92))
+            .foregroundStyle(.black.opacity(0.82))
             .padding(.leading, 12)
             .focused($isInputFocused)
             .onSubmit(addTask)
@@ -236,14 +232,14 @@ struct ContentView: View {
             Button(action: addTask) {
                 Image(systemName: "plus")
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(.black.opacity(0.72))
                     .frame(width: 34, height: 34)
                     .background(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(.white.opacity(0.06))
+                            .fill(.black.opacity(0.05))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(.white.opacity(0.14), lineWidth: 1)
+                                    .stroke(.black.opacity(0.12), lineWidth: 1)
                             )
                     )
             }
@@ -253,10 +249,10 @@ struct ContentView: View {
         .frame(height: 44)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.17))
+                .fill(.black.opacity(0.04))
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(.white.opacity(0.20), lineWidth: 1.2)
+                        .stroke(.black.opacity(0.10), lineWidth: 1.2)
                 )
         )
     }
@@ -290,7 +286,7 @@ struct ContentView: View {
             if tasks.isEmpty {
                 Text("Vazio como o espaco...")
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.42))
+                    .foregroundStyle(.black.opacity(0.36))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else if tasks.count <= maxVisibleTasks {
                 LazyVStack(spacing: taskRowSpacing) {
@@ -469,7 +465,7 @@ struct ContentView: View {
     private var footer: some View {
         VStack(spacing: 12) {
             Rectangle()
-                .fill(.white.opacity(0.13))
+                .fill(.black.opacity(0.10))
                 .frame(height: 1)
 
             HStack {
@@ -478,7 +474,7 @@ struct ContentView: View {
                 Text("\(completionPercent)% concluido")
             }
             .font(.system(size: 11, weight: .semibold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.58))
+            .foregroundStyle(.black.opacity(0.46))
         }
     }
 
@@ -641,14 +637,14 @@ private struct HeaderIcon: View {
     var body: some View {
         Image(systemName: symbol)
             .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(.white.opacity(isActive ? 0.86 : 0.56))
+            .foregroundStyle(.black.opacity(isActive ? 0.72 : 0.58))
             .frame(width: 36, height: 36)
             .background(
                 Circle()
-                    .fill(isActive ? Color.indigo.opacity(0.30) : .white.opacity(0.08))
+                    .fill(isActive ? Color.indigo.opacity(0.20) : .black.opacity(0.05))
                     .overlay(
                         Circle()
-                            .stroke(.white.opacity(isActive ? 0.20 : 0.12), lineWidth: 1)
+                            .stroke(.black.opacity(isActive ? 0.16 : 0.10), lineWidth: 1)
                     )
             )
     }
