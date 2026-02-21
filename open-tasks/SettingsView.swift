@@ -36,6 +36,28 @@ struct SettingsView: View {
         case automatic = "Automática"
 
         var id: String { rawValue }
+
+        init(appTheme: AppTheme) {
+            switch appTheme {
+            case .light:
+                self = .light
+            case .dark:
+                self = .dark
+            case .automatic:
+                self = .automatic
+            }
+        }
+
+        var appTheme: AppTheme {
+            switch self {
+            case .light:
+                return .light
+            case .dark:
+                return .dark
+            case .automatic:
+                return .automatic
+            }
+        }
     }
 
     private enum IconSizeOption: String, CaseIterable, Identifiable {
@@ -76,6 +98,7 @@ struct SettingsView: View {
     @State private var selectedTab: SettingsTab = .general
     @State private var searchText = ""
     @State private var hostWindow: NSWindow?
+    @EnvironmentObject private var themeStore: AppThemeStore
 
     @State private var launchAtLogin = false
     @State private var reopenPreviousWindows = true
@@ -83,7 +106,6 @@ struct SettingsView: View {
     @State private var hapticsEnabled = true
     @State private var appLanguage = "Português (Brasil)"
 
-    @State private var selectedTheme: ThemeMode = .dark
     @State private var selectedAccentColorIndex = 0
     @State private var selectedIconSize: IconSizeOption = .medium
     @State private var selectedScrollbarBehavior: ScrollbarBehavior = .automatic
@@ -153,6 +175,10 @@ struct SettingsView: View {
             return selectedTab
         }
         return visibleTabs.first ?? .general
+    }
+
+    private var selectedThemeMode: ThemeMode {
+        ThemeMode(appTheme: themeStore.selectedTheme)
     }
 
     var body: some View {
@@ -443,12 +469,14 @@ struct SettingsView: View {
     }
 
     private var appearanceContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let selectedTheme = selectedThemeMode
+
+        return VStack(alignment: .leading, spacing: 12) {
             sectionTitle("TEMA")
             HStack(spacing: 10) {
                 ForEach(ThemeMode.allCases) { mode in
                     Button {
-                        selectedTheme = mode
+                        themeStore.selectedTheme = mode.appTheme
                     } label: {
                         VStack(spacing: 8) {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
