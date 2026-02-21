@@ -156,22 +156,26 @@ private struct MenuBarContent: View {
                                                         topbarTaskEntryButton(entry.title, windowID: item.id)
                                                     }
                                                 }
+                                                .frame(maxWidth: .infinity, alignment: .leading)
                                             }
+                                            .frame(maxWidth: .infinity, alignment: .leading)
                                             .frame(height: CGFloat(maxVisibleExpandedTasks) * expandedTaskRowHeight)
-                                            .padding(.trailing, 4)
                                         } else {
                                             VStack(alignment: .leading, spacing: 0) {
                                                 ForEach(entries) { entry in
                                                     topbarTaskEntryButton(entry.title, windowID: item.id)
                                                 }
                                             }
+                                            .frame(maxWidth: .infinity, alignment: .leading)
                                         }
                                     }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.leading, 24)
                                     .padding(.bottom, 4)
                                 }
                             }
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
                     Divider()
