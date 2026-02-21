@@ -158,37 +158,10 @@ struct SettingsView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(.regularMaterial)
+                .fill(Color.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .fill(Color(red: 0.12, green: 0.13, blue: 0.15).opacity(0.46))
-                )
-                .overlay(alignment: .topLeading) {
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.45, green: 0.39, blue: 0.36).opacity(0.20),
-                            Color(red: 0.35, green: 0.30, blue: 0.36).opacity(0.10),
-                            .clear
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                }
-                .overlay(alignment: .bottomLeading) {
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.12, green: 0.36, blue: 0.52).opacity(0.28),
-                            .clear
-                        ],
-                        startPoint: .bottomLeading,
-                        endPoint: .topTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                }
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .strokeBorder(.white.opacity(0.20), lineWidth: 1)
+                        .strokeBorder(.black.opacity(0.08), lineWidth: 1)
                 )
                 .padding(.horizontal, panelHorizontalInset)
                 .padding(.vertical, panelVerticalInset)
@@ -231,7 +204,7 @@ struct SettingsView: View {
             sidebar
 
             Rectangle()
-                .fill(.white.opacity(0.10))
+                .fill(.black.opacity(0.08))
                 .frame(width: 1)
                 .padding(.vertical, 8)
 
@@ -245,7 +218,7 @@ struct SettingsView: View {
             HStack(spacing: 0) {
                 Text("Config")
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.97))
+                    .foregroundStyle(.black.opacity(0.82))
                     .frame(height: 36, alignment: .center)
 
                 Spacer()
@@ -276,17 +249,17 @@ struct SettingsView: View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.56))
+                .foregroundStyle(.black.opacity(0.46))
                 .frame(width: 20)
 
             TextField(
                 "",
                 text: $searchText,
-                prompt: Text("Buscar ajustes...").foregroundColor(.white.opacity(0.70))
+                prompt: Text("Buscar ajustes...").foregroundColor(.black.opacity(0.42))
             )
             .textFieldStyle(.plain)
             .font(.system(size: 16, weight: .medium, design: .rounded))
-            .foregroundStyle(.white.opacity(0.92))
+            .foregroundStyle(.black.opacity(0.82))
 
             if !searchText.isEmpty {
                 Button {
@@ -294,7 +267,7 @@ struct SettingsView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 14))
-                        .foregroundStyle(.white.opacity(0.45))
+                        .foregroundStyle(.black.opacity(0.40))
                 }
                 .buttonStyle(.plain)
             }
@@ -303,10 +276,10 @@ struct SettingsView: View {
         .frame(height: 44)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.17))
+                .fill(.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(.white.opacity(0.20), lineWidth: 1.2)
+                        .stroke(.black.opacity(0.08), lineWidth: 1.2)
                 )
         )
     }
@@ -322,10 +295,10 @@ struct SettingsView: View {
         .frame(maxHeight: .infinity, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.black.opacity(0.18))
+                .fill(.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(.white.opacity(0.10), lineWidth: 1)
+                        .stroke(.black.opacity(0.08), lineWidth: 1)
                 )
         )
     }
@@ -356,15 +329,15 @@ struct SettingsView: View {
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                 Spacer(minLength: 0)
             }
-            .foregroundStyle(.white.opacity(activeTab == tab ? 0.95 : 0.72))
+            .foregroundStyle(.black.opacity(activeTab == tab ? 0.86 : 0.62))
             .padding(.horizontal, 10)
             .padding(.vertical, 9)
             .background(
                 RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .fill(activeTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.40) : .black.opacity(0.15))
+                    .fill(activeTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.20) : .white)
                     .overlay(
                         RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .stroke(.white.opacity(activeTab == tab ? 0.22 : 0.08), lineWidth: 1)
+                            .stroke(activeTab == tab ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.45) : .black.opacity(0.10), lineWidth: 1)
                     )
             )
         }
@@ -395,19 +368,19 @@ struct SettingsView: View {
     private var footer: some View {
         VStack(spacing: 8) {
             Rectangle()
-                .fill(.white.opacity(0.14))
+                .fill(.black.opacity(0.08))
                 .frame(height: 1)
 
             HStack {
                 Text("Configuração ativa")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.60))
+                    .foregroundStyle(.black.opacity(0.52))
 
                 Spacer()
 
                 Text(activeTab.rawValue)
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.60))
+                    .foregroundStyle(.black.opacity(0.52))
             }
         }
     }
@@ -433,7 +406,7 @@ struct SettingsView: View {
                 HStack(spacing: 12) {
                     Text("Idioma do App")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.88))
+                        .foregroundStyle(.black.opacity(0.82))
 
                     Spacer()
 
@@ -455,13 +428,13 @@ struct SettingsView: View {
                 HStack(spacing: 10) {
                     Text("Armazenamento Local")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.88))
+                        .foregroundStyle(.black.opacity(0.82))
 
                     Spacer()
 
                     Text("2.4 GB")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.62))
+                        .foregroundStyle(.black.opacity(0.50))
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
@@ -482,14 +455,14 @@ struct SettingsView: View {
                                 .fill(themePreviewBackground(for: mode))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .stroke(mode == selectedTheme ? Color(red: 0.44, green: 0.45, blue: 0.98) : .white.opacity(0.16), lineWidth: mode == selectedTheme ? 2 : 1)
+                                        .stroke(mode == selectedTheme ? Color(red: 0.44, green: 0.45, blue: 0.98) : .black.opacity(0.16), lineWidth: mode == selectedTheme ? 2 : 1)
                                 )
                                 .frame(height: 76)
                                 .overlay(themePreviewContent(for: mode))
 
                             Text(mode.rawValue)
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.white.opacity(0.78))
+                                .foregroundStyle(.black.opacity(0.68))
                         }
                     }
                     .buttonStyle(.plain)
@@ -507,7 +480,7 @@ struct SettingsView: View {
                             .frame(width: 26, height: 26)
                             .overlay(
                                 Circle()
-                                    .stroke(.white.opacity(index == selectedAccentColorIndex ? 0.95 : 0), lineWidth: 2)
+                                    .stroke(.black.opacity(index == selectedAccentColorIndex ? 0.82 : 0), lineWidth: 2)
                             )
                     }
                     .buttonStyle(.plain)
@@ -522,12 +495,12 @@ struct SettingsView: View {
                     } label: {
                         Text(size.rawValue)
                             .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white.opacity(selectedIconSize == size ? 0.95 : 0.62))
+                            .foregroundStyle(.black.opacity(selectedIconSize == size ? 0.82 : 0.58))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .fill(selectedIconSize == size ? .white.opacity(0.20) : .clear)
+                                    .fill(selectedIconSize == size ? Color(red: 0.39, green: 0.41, blue: 0.93).opacity(0.18) : .clear)
                             )
                     }
                     .buttonStyle(.plain)
@@ -536,10 +509,10 @@ struct SettingsView: View {
             .padding(6)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(.black.opacity(0.25))
+                    .fill(.white)
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.white.opacity(0.08), lineWidth: 1)
+                            .stroke(.black.opacity(0.08), lineWidth: 1)
                     )
             )
 
@@ -552,7 +525,7 @@ struct SettingsView: View {
                     } label: {
                         HStack(spacing: 12) {
                             Circle()
-                                .stroke(.white.opacity(0.58), lineWidth: 1.6)
+                                .stroke(.black.opacity(0.38), lineWidth: 1.6)
                                 .frame(width: 20, height: 20)
                                 .overlay(
                                     Circle()
@@ -563,7 +536,7 @@ struct SettingsView: View {
 
                             Text(behavior.rawValue)
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.white.opacity(0.86))
+                                .foregroundStyle(.black.opacity(0.80))
                             Spacer()
                         }
                         .padding(.horizontal, 16)
@@ -590,7 +563,7 @@ struct SettingsView: View {
 
             Text("O caminho deve apontar para o binário instalado via Homebrew ou npm.")
                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.42))
+                .foregroundStyle(.black.opacity(0.44))
                 .padding(.horizontal, 2)
 
             sectionTitle("INFERÊNCIA")
@@ -598,7 +571,7 @@ struct SettingsView: View {
                 HStack {
                     Text("Modelo Principal")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.88))
+                        .foregroundStyle(.black.opacity(0.82))
 
                     Spacer()
 
@@ -618,14 +591,14 @@ struct SettingsView: View {
                 HStack(spacing: 10) {
                     Text("Temperatura")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.88))
+                        .foregroundStyle(.black.opacity(0.82))
 
                     Slider(value: $temperature, in: 0...1, step: 0.1)
                         .tint(Color(red: 0.39, green: 0.44, blue: 0.99))
 
                     Text(String(format: "%.1f", temperature))
                         .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.72))
+                        .foregroundStyle(.black.opacity(0.62))
                         .frame(width: 32)
                 }
                 .padding(.horizontal, 16)
@@ -653,7 +626,7 @@ struct SettingsView: View {
                         HStack {
                             Text(item.name)
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.white.opacity(0.88))
+                                .foregroundStyle(.black.opacity(0.82))
 
                             Spacer()
 
@@ -675,13 +648,13 @@ struct SettingsView: View {
         HStack {
             Text(title)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.86))
+                .foregroundStyle(.black.opacity(0.82))
 
             Spacer()
 
             Text(value)
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.58))
+                .foregroundStyle(.black.opacity(0.56))
                 .lineLimit(1)
         }
         .padding(.horizontal, 16)
@@ -691,7 +664,7 @@ struct SettingsView: View {
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 12, weight: .bold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.40))
+            .foregroundStyle(.black.opacity(0.50))
             .tracking(0.7)
             .padding(.top, 2)
     }
@@ -701,13 +674,13 @@ struct SettingsView: View {
             if let icon {
                 Image(systemName: icon)
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.58))
+                    .foregroundStyle(.black.opacity(0.58))
                     .frame(width: 20)
             }
 
             Text(title)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.88))
+                .foregroundStyle(.black.opacity(0.82))
 
             Spacer()
 
@@ -726,17 +699,17 @@ struct SettingsView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.black.opacity(0.22))
+                .fill(.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(.white.opacity(0.10), lineWidth: 1)
+                        .stroke(.black.opacity(0.08), lineWidth: 1)
                 )
         )
     }
 
     private var rowDivider: some View {
         Rectangle()
-            .fill(.white.opacity(0.10))
+            .fill(.black.opacity(0.08))
             .frame(height: 1)
             .padding(.horizontal, 12)
     }
@@ -782,15 +755,15 @@ struct SettingsView: View {
         case .automatic:
             Text("Auto")
                 .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.90))
+                .foregroundStyle(.black.opacity(0.78))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(
                     Capsule()
-                        .fill(.white.opacity(0.14))
+                        .fill(.white)
                         .overlay(
                             Capsule()
-                                .stroke(.white.opacity(0.20), lineWidth: 1)
+                                .stroke(.black.opacity(0.20), lineWidth: 1)
                         )
                 )
         }
@@ -808,14 +781,14 @@ private struct SettingsHeaderIcon: View {
     var body: some View {
         Image(systemName: symbol)
             .font(.system(size: 17, weight: .semibold))
-            .foregroundStyle(.white.opacity(isActive ? 0.95 : 0.72))
+            .foregroundStyle(.black.opacity(isActive ? 0.82 : 0.62))
             .frame(width: 42, height: 42)
             .background(
                 Circle()
-                    .fill(isActive ? Color(red: 0.42, green: 0.41, blue: 0.80).opacity(0.75) : .white.opacity(0.06))
+                    .fill(.white)
                     .overlay(
                         Circle()
-                            .stroke(.white.opacity(0.14), lineWidth: 1)
+                            .stroke(isActive ? Color(red: 0.42, green: 0.41, blue: 0.80).opacity(0.45) : .black.opacity(0.10), lineWidth: 1)
                     )
             )
     }
@@ -829,16 +802,16 @@ private struct ShortcutKeysView: View {
             ForEach(keys, id: \.self) { key in
                 Text(key)
                     .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.92))
+                    .foregroundStyle(.black.opacity(0.78))
                     .frame(minWidth: 26)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 5)
                     .background(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(.white.opacity(0.10))
+                            .fill(.white)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .stroke(.white.opacity(0.12), lineWidth: 1)
+                                    .stroke(.black.opacity(0.12), lineWidth: 1)
                             )
                     )
             }
@@ -851,19 +824,19 @@ private struct EmptySettingsStateView: View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.52))
+                .foregroundStyle(.black.opacity(0.50))
             Text("Nenhum ajuste encontrado")
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.52))
+                .foregroundStyle(.black.opacity(0.50))
         }
         .frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
         .padding(.horizontal, 12)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.black.opacity(0.18))
+                .fill(.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(.white.opacity(0.08), lineWidth: 1)
+                        .stroke(.black.opacity(0.08), lineWidth: 1)
                 )
         )
     }
