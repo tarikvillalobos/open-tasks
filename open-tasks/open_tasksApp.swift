@@ -34,6 +34,9 @@ struct open_tasksApp: App {
 }
 
 private struct MenuBarContent: View {
+    private let maxVisibleExpandedTasks = 4
+    private let expandedTaskRowHeight: CGFloat = 34
+
     @StateObject private var windowStore = TodoWindowStore.shared
     @Environment(\.openWindow) private var openWindow
     @State private var isTasksExpanded = false
@@ -145,14 +148,27 @@ private struct MenuBarContent: View {
                                         .padding(.leading, 24)
                                         .padding(.bottom, 4)
                                 } else {
-                                    ForEach(entries) { entry in
-                                        Button(entry.title) {
-                                            revealWindow(for: item.id)
+                                    Group {
+                                        if entries.count > maxVisibleExpandedTasks {
+                                            ScrollView(.vertical) {
+                                                VStack(alignment: .leading, spacing: 0) {
+                                                    ForEach(entries) { entry in
+                                                        topbarTaskEntryButton(entry.title, windowID: item.id)
+                                                    }
+                                                }
+                                            }
+                                            .frame(height: CGFloat(maxVisibleExpandedTasks) * expandedTaskRowHeight)
+                                            .padding(.trailing, 4)
+                                        } else {
+                                            VStack(alignment: .leading, spacing: 0) {
+                                                ForEach(entries) { entry in
+                                                    topbarTaskEntryButton(entry.title, windowID: item.id)
+                                                }
+                                            }
                                         }
-                                        .lineLimit(1)
-                                        .padding(.leading, 24)
-                                        .padding(.vertical, 2)
                                     }
+                                    .padding(.leading, 24)
+                                    .padding(.bottom, 4)
                                 }
                             }
                         }
@@ -203,6 +219,14 @@ private struct MenuBarContent: View {
                 cancelInlineRename()
             }
         }
+    }
+
+    private func topbarTaskEntryButton(_ title: String, windowID: ObjectIdentifier) -> some View {
+        Button(title) {
+            revealWindow(for: windowID)
+        }
+        .lineLimit(1)
+        .padding(.vertical, 2)
     }
 
     private func toggleExpandedTasks(for windowID: ObjectIdentifier) {
