@@ -235,6 +235,12 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .handCursorOnHover()
 
+                Button(action: openRepositoryWindow) {
+                    HeaderIcon(symbol: "person.circle", isDarkTheme: isDarkTheme)
+                }
+                .buttonStyle(.plain)
+                .handCursorOnHover()
+
                 Button(action: openSettingsWindow) {
                     HeaderIcon(symbol: "gearshape", isDarkTheme: isDarkTheme)
                 }
@@ -615,6 +621,11 @@ struct ContentView: View {
 
     private func openSettingsWindow() {
         openWindow(id: "config-window")
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func openRepositoryWindow() {
+        openWindow(id: "repository-window")
         NSApp.activate(ignoringOtherApps: true)
     }
 

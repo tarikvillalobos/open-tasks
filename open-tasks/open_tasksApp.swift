@@ -89,6 +89,14 @@ struct open_tasksApp: App {
         .windowStyle(.plain)
         .windowResizability(.contentSize)
 
+        Window("Repository", id: "repository-window") {
+            RepositoryView()
+                .environmentObject(themeStore)
+                .preferredColorScheme(themeStore.preferredColorScheme)
+        }
+        .windowStyle(.plain)
+        .windowResizability(.contentSize)
+
         MenuBarExtra("OpenTasks", systemImage: "checklist") {
             MenuBarContent()
                 .environmentObject(themeStore)
